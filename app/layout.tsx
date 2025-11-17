@@ -2,11 +2,17 @@ import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
+import { Toaster } from '@/components/ui/toaster'
 
 export const metadata: Metadata = {
-  title: 'v0 App',
-  description: 'Created with v0',
-  generator: 'v0.dev',
+  title: 'TSUYA NO UCHI — Ukiyo‑e Style Anime Art Prints',
+  description: 'Handcrafted ukiyo‑e inspired anime prints on premium paper. Soft palettes, gentle grain, timeless mood.',
+  generator: 'Next.js',
+  openGraph: {
+    title: 'TSUYA NO UCHI — Ukiyo‑e Style Anime Art Prints',
+    description: 'Handcrafted ukiyo‑e inspired anime prints on premium paper. Soft palettes, gentle grain, timeless mood.',
+    type: 'website',
+  },
 }
 
 export default function RootLayout({
@@ -25,7 +31,10 @@ html {
 }
         `}</style>
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Toaster />
+      </body>
     </html>
   )
 }
