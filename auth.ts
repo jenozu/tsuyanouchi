@@ -1,24 +1,18 @@
+// Auth configuration - Currently disabled
+// This will be set up in Phase 2 of the implementation roadmap
+// See IMPLEMENTATION_ROADMAP.md for setup instructions
+
 import NextAuth from "next-auth"
 import Google from "next-auth/providers/google"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      clientId: process.env.AUTH_GOOGLE_ID || "placeholder",
+      clientSecret: process.env.AUTH_GOOGLE_SECRET || "placeholder",
     }),
   ],
   pages: {
     signIn: '/auth/signin',
   },
-  callbacks: {
-    session({ session, user }) {
-      session.user.id = user.id
-      return session
-    },
-  },
 })
-
