@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import Navbar from "@/components/navbar"
+import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ProductDetail from "@/components/shop/product-detail"
 import { getProducts, getProduct } from "@/lib/products"
@@ -39,7 +39,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Navbar />
+      <NavbarWrapper />
       <ProductDetail product={product} related={related} />
       <Footer />
     </main>

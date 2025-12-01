@@ -2,7 +2,8 @@
 
 import Link from "next/link"
 import { useToast } from "@/hooks/use-toast"
-import { Menu, ShoppingBag, User, Heart } from 'lucide-react'
+import { Menu, ShoppingBag, Heart } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Sheet,
   SheetContent,
@@ -10,8 +11,27 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { SignOutButton } from "@/components/auth/signout-button"
 
-export default function Navbar() {
+interface NavbarProps {
+  session: {
+    user: {
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
+  } | null
+}
+
+export default function Navbar({ session }: NavbarProps) {
   const { toast } = useToast()
 
   return (
@@ -58,14 +78,45 @@ export default function Navbar() {
               <span className="sr-only">Cart</span>
             </button>
 
-            <Link
-              href="/account"
-              aria-label="Account"
-              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
-            >
-              <User className="h-5 w-5" />
-              <span className="sr-only">Account</span>
-            </Link>
+            {session ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button 
+                    className="inline-grid h-10 w-10 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+                    aria-label="Account menu"
+                  >
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={session.user?.image || ""} />
+                      <AvatarFallback>{session.user?.name?.[0] || "U"}</AvatarFallback>
+                    </Avatar>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>
+                    {session.user?.name}
+                    <div className="text-xs text-muted-foreground font-normal">{session.user?.email}</div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/account">Account</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <SignOutButton />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link
+                href="/auth/signin"
+                className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+                aria-label="Sign in"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <span className="sr-only">Sign in</span>
+              </Link>
+            )}
           </div>
         </nav>
 
@@ -94,14 +145,45 @@ export default function Navbar() {
             <span className="sr-only">Cart</span>
           </button>
 
-          <Link
-            href="/account"
-            aria-label="Account"
-            className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
-          >
-            <User className="h-5 w-5" />
-            <span className="sr-only">Account</span>
-          </Link>
+          {session ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button 
+                  className="inline-grid h-10 w-10 place-items-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+                  aria-label="Account menu"
+                >
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={session.user?.image || ""} />
+                    <AvatarFallback>{session.user?.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>
+                  {session.user?.name}
+                  <div className="text-xs text-muted-foreground font-normal">{session.user?.email}</div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/account">Account</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <SignOutButton />
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              href="/auth/signin"
+              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+              aria-label="Sign in"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              <span className="sr-only">Sign in</span>
+            </Link>
+          )}
 
           <Sheet>
             <SheetTrigger
@@ -126,9 +208,18 @@ export default function Navbar() {
                 <Link href="/favourites" className="text-zinc-700 hover:text-zinc-900">
                   Favourites
                 </Link>
-                <Link href="/account" className="text-zinc-700 hover:text-zinc-900">
-                  Account
-                </Link>
+                {session ? (
+                  <>
+                    <Link href="/account" className="text-zinc-700 hover:text-zinc-900">
+                      Account
+                    </Link>
+                    <SignOutButton />
+                  </>
+                ) : (
+                  <Link href="/auth/signin" className="text-zinc-700 hover:text-zinc-900">
+                    Sign In
+                  </Link>
+                )}
               </div>
             </SheetContent>
           </Sheet>

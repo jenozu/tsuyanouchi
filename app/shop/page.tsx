@@ -1,4 +1,4 @@
-import Navbar from "@/components/navbar"
+import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ShopGrid from "@/components/shop/shop-grid"
 import { getProducts } from "@/lib/products"
@@ -13,7 +13,7 @@ export default async function ShopPage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Navbar />
+      <NavbarWrapper />
       <section
         className="relative border-b"
         style={{

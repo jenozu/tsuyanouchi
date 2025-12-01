@@ -2,7 +2,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import Navbar from "@/components/navbar"
+import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import { getProducts } from "@/lib/products"
 
@@ -18,7 +18,7 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen flex flex-col">
-      <Navbar />
+      <NavbarWrapper />
       <section className="relative w-full h-[64vh] md:h-[80vh] overflow-hidden">
         <Image
           src="/images/tsuya-triple.png"
