@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
@@ -10,7 +10,7 @@ import { CheckCircle2, Package, Mail } from "lucide-react"
 import Link from "next/link"
 import { Order } from "@/lib/supabase-helpers"
 
-export default function ThankYouPage() {
+function ThankYouContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('order_id')
   const [order, setOrder] = useState<Order | null>(null)
@@ -243,5 +243,23 @@ export default function ThankYouPage() {
       
       <Footer />
     </main>
+  )
+}
+
+export default function ThankYouPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex flex-col">
+          <NavbarWrapper />
+          <div className="flex-1 flex items-center justify-center">
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+          <Footer />
+        </main>
+      }
+    >
+      <ThankYouContent />
+    </Suspense>
   )
 }
