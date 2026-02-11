@@ -1,12 +1,26 @@
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+let cachedStripe: Stripe | null = null
+
+function getStripeClient(): Stripe {
+  const secretKey = process.env.STRIPE_SECRET_KEY
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY is not set in environment variables')
+  }
+  if (!cachedStripe) {
+    cachedStripe = new Stripe(secretKey, {
+      apiVersion: '2024-12-18.acacia',
+      typescript: true,
+    })
+  }
+  return cachedStripe
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-12-18.acacia',
-  typescript: true,
+// Lazy proxy: avoid build-time failure when env vars are unavailable
+export const stripe = new Proxy({} as Stripe, {
+  get(_, prop) {
+    return (getStripeClient() as Record<string | symbol, unknown>)[prop]
+  },
 })
 
 export async function createPaymentIntent(
