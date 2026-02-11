@@ -1,39 +1,49 @@
 # TSUYA NO UCHI — Ukiyo‑e Style Anime Art Prints
 
-A modern e-commerce website for ukiyo‑e inspired anime art prints. Built with Next.js 15, Sanity CMS, and Tailwind CSS v4.
+A modern e-commerce website for ukiyo‑e inspired anime art prints. Built with Next.js 15, Supabase, Stripe, and Tailwind CSS v4.
 
 ![TSUYA NO UCHI](public/images/tsuya-triple.png)
 
 ## ✨ Features
 
 - **🎨 Beautiful Ukiyo-e Aesthetic**: Soft palettes, paper textures, and timeless design
-- **🛍️ E-commerce Functionality**: Browse, filter, and view products with detailed pages
+- **🛍️ Full E-commerce Platform**: Browse, cart, favorites, and complete checkout with Stripe
 - **📱 Fully Responsive**: Optimized for desktop, tablet, and mobile devices
-- **🎯 Content Management**: Powered by Sanity CMS for easy product management
+- **💳 Secure Payments**: Stripe integration with webhook support
+- **📧 Email Notifications**: Order confirmations and admin alerts via Resend
+- **🔐 Admin Dashboard**: Password-protected admin panel for product and order management
 - **⚡ High Performance**: Built with Next.js 15 App Router and React 19
 - **🎭 Modern UI Components**: shadcn/ui components with Tailwind CSS v4
 - **🔍 SEO Optimized**: Proper metadata and OpenGraph tags for better discoverability
+- **☁️ Cloud Infrastructure**: Supabase for database and storage with global CDN
+- **🗄️ Real-time Features**: Instant cart and favorites updates with Context API
 
 ## 🚀 Tech Stack
 
 - **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **CMS**: [Sanity.io](https://www.sanity.io/)
+- **Database**: [Supabase](https://supabase.com/) (PostgreSQL + Row Level Security)
+- **Storage**: [Supabase Storage](https://supabase.com/docs/guides/storage) (Image uploads)
+- **Payments**: [Stripe](https://stripe.com/) (Payment processing + webhooks)
+- **Email**: [Resend](https://resend.com/) (Transactional emails)
 - **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Language**: [TypeScript](https://www.typescriptlang.org/)
 - **Font**: [Geist Sans & Mono](https://vercel.com/font)
 - **Icons**: [Lucide React](https://lucide.dev/)
-- **Package Manager**: [pnpm](https://pnpm.io/)
+- **Package Manager**: [npm](https://www.npmjs.com/)
 
 ## 📋 Prerequisites
 
-Before you begin, ensure you have the following installed:
+Before you begin, ensure you have the following:
 
 - **Node.js** (v20 or higher)
-- **pnpm** (v8 or higher) - Install with `npm install -g pnpm`
+- **npm** (v10 or higher)
 - **Git**
+- **Supabase Account** (free tier works)
+- **Stripe Account** (for payments)
+- **Resend Account** (for emails)
 
-## 🛠️ Installation
+## 🛠️ Quick Start
 
 ### 1. Clone the Repository
 
@@ -43,6 +53,67 @@ cd tsuyanouchi
 ```
 
 ### 2. Install Dependencies
+
+```bash
+npm install
+```
+
+### 3. Set Up External Services
+
+Follow the detailed setup guide in **[TODO.md](./TODO.md)** to configure:
+- Supabase (database + storage)
+- Stripe (payments)
+- Resend (emails)
+
+Or use the quick reference in **[COMPLETED_WORK.md](./COMPLETED_WORK.md)**
+
+### 4. Configure Environment Variables
+
+Create a `.env.local` file in the root directory. See **[ENV_TEMPLATE.md](./ENV_TEMPLATE.md)** for the complete template.
+
+Required variables:
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_your-key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-key
+STRIPE_WEBHOOK_SECRET=whsec_your-secret
+
+# Admin
+ADMIN_PASSWORD=your-secure-password
+
+# Resend
+RESEND_API_KEY=re_your-key
+ORDER_NOTIFICATION_EMAIL=your-email@example.com
+```
+
+### 5. Set Up Database
+
+1. Go to your Supabase dashboard
+2. Open SQL Editor
+3. Copy and paste the contents of `supabase-setup.sql`
+4. Run the query
+
+This creates all tables, indexes, RLS policies, and default data.
+
+### 6. Run Development Server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📚 Documentation
+
+- **[TODO.md](./TODO.md)** - Step-by-step setup checklist
+- **[COMPLETED_WORK.md](./COMPLETED_WORK.md)** - Summary of completed features
+- **[AUTOMATED_IMPROVEMENTS.md](./AUTOMATED_IMPROVEMENTS.md)** - Technical improvements details
+- **[ENV_TEMPLATE.md](./ENV_TEMPLATE.md)** - Environment variables guide
+- **[docs/koji_tsuya_integration_plan.md](./docs/koji_tsuya_integration_plan.md)** - Full integration plan
 
 ```bash
 pnpm install
@@ -61,29 +132,30 @@ NEXT_PUBLIC_SANITY_DATASET=production
 # Optional: For Sanity Studio authentication and live preview
 # Create a token with Viewer permissions at https://www.sanity.io/manage
 SANITY_API_READ_TOKEN=your_read_token_here
+
+# Vercel Storage (auto-configured when deploying to Vercel)
+# For local development: run `vercel env pull .env.local`
+BLOB_READ_WRITE_TOKEN=your_blob_token_here
+KV_REST_API_URL=your_kv_url_here
+KV_REST_API_TOKEN=your_kv_token_here
 ```
 
-**Note**: The project includes fallback products, so it will work without Sanity configuration. However, to use the CMS features, you'll need to set up a Sanity project.
+### 4. Set Up Database
 
-### 4. Set Up Sanity (Optional)
+1. Go to your Supabase dashboard
+2. Open SQL Editor
+3. Copy and paste the contents of `supabase-setup.sql`
+4. Run the query
 
-If you want to use Sanity CMS for content management:
+This creates all tables, indexes, RLS policies, and default data.
 
-1. **Create a Sanity Account**: Go to [sanity.io](https://www.sanity.io/) and sign up
-2. **Create a New Project**: 
-   - Go to [sanity.io/manage](https://www.sanity.io/manage)
-   - Click "Create project"
-   - Note your Project ID
-3. **Update Environment Variables**: Add your Project ID to `.env.local`
-4. **Access Sanity Studio**: Visit `http://localhost:3000/studio` after starting the dev server
-
-### 5. Start the Development Server
+### 5. Run Development Server
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 📂 Project Structure
 
@@ -91,48 +163,45 @@ Open [http://localhost:3000](http://localhost:3000) in your browser to see the r
 tsuyanouchi/
 ├── app/                      # Next.js App Router
 │   ├── globals.css          # Global styles with Tailwind v4
-│   ├── layout.tsx           # Root layout with metadata
+│   ├── layout.tsx           # Root layout with providers
 │   ├── page.tsx             # Homepage
 │   ├── shop/                # Shop pages
 │   │   ├── page.tsx        # Shop listing
 │   │   └── [slug]/         # Product detail pages
-│   │       └── page.tsx
-│   └── studio/             # Sanity Studio
-│       └── [[...tool]]/
-│           └── page.tsx
+│   ├── cart/               # Shopping cart
+│   ├── checkout/           # Checkout flow
+│   ├── favourites/         # Favorites page
+│   ├── thank-you/          # Order confirmation
+│   ├── admin/              # Admin dashboard
+│   │   ├── login/         # Admin authentication
+│   │   └── page.tsx       # Dashboard home
+│   └── api/                # API routes
+│       ├── products/      # Product CRUD
+│       ├── orders/        # Order management
+│       ├── payments/      # Stripe integration
+│       └── webhooks/      # Stripe webhooks
 ├── components/              # React components
-│   ├── navbar.tsx          # Navigation bar
+│   ├── navbar.tsx          # Navigation with badges
 │   ├── footer.tsx          # Footer
-│   ├── product-card.tsx    # Product card component
+│   ├── product-card.tsx    # Product card
+│   ├── add-to-cart-button.tsx
+│   ├── favorites-client.tsx
 │   ├── shop/               # Shop-specific components
-│   │   ├── filters.tsx
-│   │   ├── product-detail.tsx
-│   │   └── shop-grid.tsx
 │   └── ui/                 # shadcn/ui components
-│       ├── button.tsx
-│       ├── card.tsx
-│       └── ...
-├── hooks/                   # Custom React hooks
-│   ├── use-mobile.ts
-│   └── use-toast.ts
 ├── lib/                     # Utility functions
-│   ├── products.ts         # Product data & Sanity queries
-│   └── utils.ts            # Helper utilities
+│   ├── supabase-client.ts  # Supabase setup
+│   ├── supabase-helpers.ts # Database helpers
+│   ├── cart-context.tsx    # Cart state management
+│   ├── favorites-context.tsx # Favorites state
+│   ├── stripe.ts           # Stripe utilities
+│   ├── email.ts            # Email sending
+│   └── products.ts         # Product utilities
+├── scripts/                 # Utility scripts
+│   └── migrate-to-supabase.ts
+├── docs/                    # Documentation
 ├── public/                  # Static assets
-│   ├── images/             # Product images
-│   └── ...
-├── sanity/                  # Sanity configuration
-│   ├── lib/
-│   │   ├── client.ts       # Sanity client setup
-│   │   └── queries.ts      # GROQ queries
-│   ├── schemaTypes/
-│   │   ├── index.ts
-│   │   └── product.ts      # Product schema
-│   └── structure.ts        # Studio structure
-├── sanity.config.ts         # Sanity Studio config
-├── next.config.mjs          # Next.js configuration
-├── package.json             # Dependencies
-└── tsconfig.json            # TypeScript config
+├── supabase-setup.sql      # Database setup
+└── middleware.ts           # Route protection
 ```
 
 ## 🎨 Key Features
@@ -144,56 +213,82 @@ tsuyanouchi/
 
 ### Shop Page
 - Product grid with filtering
-- Filter by size (A5, A4, A3, 11x14)
-- Filter by theme (blossom, portrait, nature, yokai)
+- Filter by size and category
 - Responsive layout
+- Real-time favorites and cart badges
 
 ### Product Detail Page
 - Image gallery with thumbnails
 - Size selector
 - Quantity picker
-- Add to cart functionality (demo)
+- Instant add to cart
+- Instant favorites toggle
 - Related products recommendations
 
-### Sanity Studio
-- Product management
-- Image uploads
-- Tag and size management
-- Live preview integration
+### Shopping Cart
+- Real-time cart management
+- Quantity updates
+- LocalStorage persistence
+- Cart count badge in navbar
+
+### Favorites
+- Instant favorites toggling
+- Persistent favorites list
+- Favorites count badge in navbar
+- Quick product access
+
+### Checkout
+- Guest checkout
+- Form validation with Zod
+- Shipping address capture
+- Shipping rate selection
+- Stripe payment integration
+- Order confirmation page
+
+### Admin Dashboard (`/admin`)
+- Password-protected access
+- Product management (CRUD operations)
+- Image uploads to Supabase Storage
+- Order management
+- Shipping rates configuration
+- Real-time analytics
+
+### Email Notifications
+- Customer order confirmations
+- Admin new order alerts
+- Beautiful HTML templates
+- Powered by Resend
 
 ## 🧪 Development Scripts
 
 ```bash
 # Start development server
-pnpm dev
+npm run dev
 
 # Build for production
-pnpm build
+npm run build
 
 # Start production server
-pnpm start
+npm start
 
 # Run linter
-pnpm lint
+npm run lint
+
+# Type check
+npm run type-check
+
+# Migrate data from Vercel KV to Supabase (one-time)
+npx tsx scripts/migrate-to-supabase.ts
 ```
 
-## 🎯 Sanity Schema
+## 🔐 Security Features
 
-### Product Type
-
-```typescript
-{
-  title: string           // Product title
-  slug: slug             // URL-friendly identifier
-  price: number          // Price in USD
-  mainImage: image       // Primary product image
-  gallery: image[]       // Additional images
-  sizes: string[]        // Available sizes (A5, A4, A3, 11x14)
-  tags: string[]         // Tags (blossom, portrait, nature, yokai)
-  description: text      // Product description
-  inStock: boolean       // Availability status
-}
-```
+- Row Level Security (RLS) on all Supabase tables
+- Password-protected admin routes with HTTP-only cookies
+- Middleware-based route protection
+- Stripe webhook signature verification
+- Secure payment processing with Stripe
+- Environment variable validation
 
 ## 🚀 Deployment
 
@@ -206,20 +301,41 @@ The easiest way to deploy this project is using [Vercel](https://vercel.com):
    - Go to [vercel.com](https://vercel.com)
    - Click "New Project"
    - Import your repository
-3. **Configure Environment Variables**: Add your Sanity credentials
+3. **Configure Environment Variables**: Add all variables from `ENV_TEMPLATE.md`
 4. **Deploy**: Click "Deploy"
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jenozu/tsuyanouchi)
 
 ### Environment Variables for Production
 
-Make sure to set these in your Vercel project settings:
+Set these in your Vercel project settings (see `ENV_TEMPLATE.md` for complete list):
 
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your-production-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
+
+# Stripe (use live keys for production!)
+STRIPE_SECRET_KEY=sk_live_your-live-secret-key
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your-live-publishable-key
+STRIPE_WEBHOOK_SECRET=whsec_your-production-webhook-secret
+
+# Admin
+ADMIN_PASSWORD=your-secure-production-password
+
+# Resend
+RESEND_API_KEY=re_your-key
+ORDER_NOTIFICATION_EMAIL=orders@yourdomain.com
 ```
-NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
-NEXT_PUBLIC_SANITY_DATASET=production
-SANITY_API_READ_TOKEN=your_token (optional)
-```
+
+**Important for Production**:
+1. Use **live** Stripe keys (not test keys)
+2. Set up Stripe webhook in Dashboard (not CLI)
+   - Go to Stripe Dashboard → Webhooks
+   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
+   - Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`
+3. Use a **strong** admin password
+4. Create a production Supabase project (separate from dev)
 
 ## 🎨 Customization
 
@@ -236,8 +352,8 @@ The site uses a custom emerald color scheme. To change it, update the Tailwind c
 
 To add or modify products:
 
-1. **With Sanity**: Visit `/studio` and manage products in the CMS
-2. **Without Sanity**: Edit `lib/products.ts` and update the `fallbackProducts` array
+1. **Via Admin Dashboard**: Visit `/admin` and manage products through the UI
+2. **Via Supabase**: Edit directly in the Supabase dashboard Table Editor
 
 ### Styling
 
@@ -245,23 +361,25 @@ Global styles are in `app/globals.css`. The project uses Tailwind CSS v4 with cu
 
 ## 📝 Product Management
 
-### Using Sanity Studio
+### Using Admin Dashboard
 
-1. Navigate to `http://localhost:3000/studio`
-2. Sign in with your Sanity account
+1. Navigate to `http://localhost:3000/admin/login`
+2. Enter your admin password (from `.env.local`)
 3. Click "Products" to manage your inventory
 4. Add new products with:
-   - Title
-   - Slug (auto-generated)
-   - Price
-   - Images (main + gallery)
-   - Sizes
-   - Tags
-   - Description
+   - Name and description
+   - Price and cost
+   - Category
+   - Images (uploaded to Supabase Storage)
+   - Sizes (JSON array)
+   - Stock quantity
 
-### Using Fallback Products
+### Using Supabase Directly
 
-If you're not using Sanity, the site will automatically use the fallback products defined in `lib/products.ts`. You can modify these directly in the code.
+You can also manage products directly in the Supabase dashboard:
+1. Go to Table Editor
+2. Select `products` table
+3. Add/edit/delete rows
 
 ## 🐛 Troubleshooting
 
@@ -271,9 +389,21 @@ If you're not using Sanity, the site will automatically use the fallback product
 - **Solution**: Check that your `NEXT_PUBLIC_SANITY_PROJECT_ID` is correct
 - The site will fall back to demo products if Sanity is unavailable
 
+**Issue**: "BLOB_READ_WRITE_TOKEN is not set"
+- **Solution**: Run `vercel env pull .env.local` to get storage credentials
+- See **[START_HERE.md](START_HERE.md)** for complete Blob setup guide
+
+**Issue**: Image upload fails in `/admin`
+- **Solution**: 
+  1. Make sure Vercel Blob is created and connected
+  2. Run `vercel env pull .env.local`
+  3. Restart your dev server
+  4. See **[CHECKLIST.md](CHECKLIST.md)** for step-by-step troubleshooting
+
 **Issue**: Images not loading
 - **Solution**: Ensure images are in the `public/` directory
 - For Sanity images, check that the image URLs are accessible
+- For uploaded images, verify they're on Vercel Blob (URL contains `.blob.vercel-storage.com`)
 
 **Issue**: TypeScript errors
 - **Solution**: Run `pnpm install` to ensure all dependencies are installed
@@ -285,6 +415,32 @@ If you're not using Sanity, the site will automatically use the fallback product
 - [Sanity Documentation](https://www.sanity.io/docs)
 - [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
 - [shadcn/ui Documentation](https://ui.shadcn.com/)
+- [Vercel Blob Documentation](https://vercel.com/docs/storage/vercel-blob)
+- [Vercel KV Documentation](https://vercel.com/docs/storage/vercel-kv)
+
+## 📖 Setup Guides
+
+### Vercel Blob Storage Setup
+
+This project uses Vercel Blob for persistent image storage. To set it up:
+
+1. **Quick Start**: See **[START_HERE.md](START_HERE.md)** for a 10-minute setup guide
+2. **Visual Guide**: See **[DASHBOARD_GUIDE.txt](DASHBOARD_GUIDE.txt)** for dashboard walkthrough
+3. **Checklist**: See **[CHECKLIST.md](CHECKLIST.md)** for step-by-step setup
+4. **Comprehensive**: See **[VERCEL_BLOB_SETUP.md](VERCEL_BLOB_SETUP.md)** for detailed docs
+5. **Summary**: See **[SETUP_SUMMARY.md](SETUP_SUMMARY.md)** for what changed
+
+**Test Connection**:
+```bash
+node scripts/test-blob.js
+```
+
+**Key Features**:
+- ✅ Persistent image storage (survives redeployments)
+- ✅ Global CDN (fast image delivery worldwide)
+- ✅ Automatic optimization and caching
+- ✅ 5 GB free storage (≈10,000 images)
+- ✅ Simple API (`put()`, `del()`, `list()`)
 
 ## 📄 License
 

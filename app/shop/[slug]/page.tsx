@@ -4,6 +4,7 @@ import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ProductDetail from "@/components/shop/product-detail"
 import { getProducts, getProduct } from "@/lib/products"
+import { getFavorites } from "@/lib/favorites-storage"
 
 type Params = { slug: string }
 
@@ -26,9 +27,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
-  const [product, allProducts] = await Promise.all([
+  const [product, allProducts, favoriteIds] = await Promise.all([
     getProduct(params.slug),
-    getProducts()
+    getProducts(),
+    getFavorites(),
   ])
   
   if (!product) return notFound()
@@ -37,10 +39,12 @@ export default async function ProductPage({ params }: { params: Params }) {
     .filter((p) => p.id !== product.id && p.tags.some((t) => product.tags.includes(t)))
     .slice(0, 4)
 
+  const isFavorite = favoriteIds.includes(product.id)
+
   return (
     <main className="min-h-screen flex flex-col">
       <NavbarWrapper />
-      <ProductDetail product={product} related={related} />
+      <ProductDetail product={product} related={related} isFavorite={isFavorite} />
       <Footer />
     </main>
   )

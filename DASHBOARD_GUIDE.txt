@@ -1,0 +1,317 @@
+┌─────────────────────────────────────────────────────────────────┐
+│                                                                 │
+│  🎯 VERCEL DASHBOARD - STEP-BY-STEP VISUAL GUIDE               │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+
+
+STEP 1: GO TO VERCEL DASHBOARD
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Open: https://vercel.com/dashboard
+
+You should see your projects list with "TSUYA NO UCHI"
+
+
+STEP 2: OPEN YOUR PROJECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│  Vercel Dashboard                                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Your Projects:                                             │
+│                                                             │
+│  ┌─────────────────────────────────────────────┐           │
+│  │  📦 TSUYA NO UCHI                ← CLICK    │           │
+│  │  https://tsuya-no-uchi.vercel.app           │           │
+│  └─────────────────────────────────────────────┘           │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 3: CLICK "STORAGE" TAB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│  TSUYA NO UCHI                                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [ Overview ] [ Deployments ] [ Storage ] [ Settings ]     │
+│                                   ↑                         │
+│                               CLICK THIS                    │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 4: CREATE BLOB STORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You'll see storage options:
+
+┌─────────────────────────────────────────────────────────────┐
+│  Storage                                                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Connected Stores:                                          │
+│  ✅ Vercel KV (Redis) - tsuya-kv                           │
+│                                                             │
+│  ┌─────────────────────────────────┐                       │
+│  │  [+ Create Database]  ← CLICK   │                       │
+│  └─────────────────────────────────┘                       │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 5: SELECT BLOB
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Choose storage type:
+
+┌─────────────────────────────────────────────────────────────┐
+│  Choose Storage Type                                        │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌──────────────────┐  ┌──────────────────┐               │
+│  │  Vercel KV       │  │  Vercel Blob     │  ← CLICK      │
+│  │  (Redis)         │  │  (File Storage)  │               │
+│  └──────────────────┘  └──────────────────┘               │
+│                                                             │
+│  ┌──────────────────┐  ┌──────────────────┐               │
+│  │  Postgres        │  │  Edge Config     │               │
+│  └──────────────────┘  └──────────────────┘               │
+│                                                             │
+│                  [ Continue ]  ← THEN CLICK                │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 6: NAME YOUR BLOB STORE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌─────────────────────────────────────────────────────────────┐
+│  Create Vercel Blob Store                                   │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Store Name:                                                │
+│  ┌─────────────────────────────────────┐                   │
+│  │  tsuya-images                       │  ← ENTER NAME     │
+│  └─────────────────────────────────────┘                   │
+│                                                             │
+│  Region: Automatically selected                             │
+│                                                             │
+│                        [ Create ]  ← CLICK                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 7: CONNECT TO PROJECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After creation, connect it to your project:
+
+┌─────────────────────────────────────────────────────────────┐
+│  Connect to Project                                         │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  Select projects to connect this store:                     │
+│                                                             │
+│  ┌─────────────────────────────────────┐                   │
+│  │  ☑ TSUYA NO UCHI            ← CHECK │                   │
+│  └─────────────────────────────────────┘                   │
+│                                                             │
+│  Environment:                                               │
+│  ☑ Production                                              │
+│  ☑ Preview                                                 │
+│  ☑ Development                                             │
+│                                                             │
+│                      [ Connect ]  ← CLICK                  │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+STEP 8: ✅ DONE!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+You should see:
+
+┌─────────────────────────────────────────────────────────────┐
+│  ✅ Store Connected Successfully!                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  tsuya-images is now connected to TSUYA NO UCHI            │
+│                                                             │
+│  Environment variables added:                               │
+│  • BLOB_READ_WRITE_TOKEN                                   │
+│                                                             │
+│  Next steps:                                                │
+│  1. Pull env vars locally: vercel env pull                 │
+│  2. Deploy or restart your dev server                      │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════
+  NEXT: RUN THESE COMMANDS IN YOUR TERMINAL
+═══════════════════════════════════════════════════════════════
+
+📁 IMPORTANT: Make sure you're in your project folder!
+   You should be in: C:\Users\andel\Desktop\TsuyaNoUchi
+   
+   If you're not sure, run: cd C:\Users\andel\Desktop\TsuyaNoUchi
+
+Open your terminal and run:
+
+  # FIRST: Link this folder to your Vercel project (one-time setup)
+  # This connects your local code folder to your Vercel project
+  # 
+  # ⚠️ WINDOWS USERS: Type the command WITHOUT the $ symbol!
+  # The $ is just documentation - don't copy it!
+  
+  vercel link
+  
+  ? Set up "~\Desktop\TsuyaNoUchi"? [Y/n] y
+  ? Which scope? [Select "jenozu's projects"]
+  ? Found project "jenozus-projects/tsuyanouchi". Link to it? [Y/n] n
+  ? Link to existing project? [Y/n] y
+  ? What's the name of your existing project? v0-tsuya
+  ✓ Linked to jenozus-projects/v0-tsuya
+  
+  💡 TO SELECT A DIFFERENT PROJECT:
+     If Vercel auto-detects the wrong project:
+     1. Answer "n" to reject the auto-detected project
+     2. Answer "y" to "Link to existing project?"
+     3. Type the project name (like "v0-tsuya") or use arrow keys to select from list
+
+  # THEN: Pull environment variables from THAT specific project
+  # (Again, type WITHOUT the $ symbol)
+  
+  vercel env pull .env.local
+  
+  ? Found existing file ".env.local". Do you want to overwrite? (y/N) y
+  ✓ Downloaded environment variables to .env.local
+  
+  💡 OVERWRITE EXISTING .env.local?
+     If you already have a .env.local file, Vercel will ask if you
+     want to overwrite it. Answer "y" (yes) because:
+     - You want fresh variables from the v0-tsuya project
+     - Old variables might be from the wrong project
+     - You need the BLOB_READ_WRITE_TOKEN from v0-tsuya
+     
+     Don't worry - it will backup the old file first!
+
+💡 WHAT DOES "vercel link" DO?
+   YES! This command connects your local folder to your Vercel project.
+   
+   Think of it like creating a "bridge" between:
+   - Your computer folder (C:\Users\andel\Desktop\TsuyaNoUchi)
+   - Your Vercel project (TSUYA NO UCHI)
+   
+   It creates a hidden .vercel/ folder that stores this connection.
+   After linking, Vercel CLI knows: "This code folder = TSUYA NO UCHI project"
+
+💡 DO I NEED TO RUN IT FROM MY PROJECT FOLDER?
+   YES! You MUST run it from your project folder (where your code is).
+   
+   That's why it says "make sure you're in your project folder" above.
+   The command creates the .vercel/ folder in the CURRENT directory,
+   so if you run it from the wrong folder, it won't work correctly.
+
+💡 HOW DOES IT KNOW WHICH PROJECT?
+   When you run "vercel link", it creates a hidden .vercel/ folder
+   that stores which Vercel project this code folder is connected to.
+   
+   When you run "vercel env pull", it reads that .vercel/ folder to
+   know: "Pull env vars from the TSUYA NO UCHI project" (not your
+   other project).
+   
+   So even if you have multiple Vercel projects with multiple Blob
+   stores, it will ONLY pull the environment variables from the project
+   that's linked to THIS folder.
+
+💡 WHY DO THIS?
+   When you created the Blob store, Vercel automatically generated
+   a secret token (BLOB_READ_WRITE_TOKEN) and stored it in the cloud
+   for your "TSUYA NO UCHI" project specifically.
+   
+   Your local dev server can't see Vercel's cloud variables, so this
+   command downloads them to a .env.local file that your Next.js
+   app can read. Think of it like "syncing" the secrets from the
+   cloud to your computer for local development.
+   
+   Without this, your local uploads would fail because the app
+   wouldn't have the authentication token to talk to Vercel Blob!
+
+Then test:
+
+  $ node scripts/test-blob.js
+  
+  🔍 Testing Vercel Blob Connection...
+  ✅ BLOB_READ_WRITE_TOKEN is set
+  ✅ Test file uploaded successfully!
+  🎉 SUCCESS! Vercel Blob is working correctly.
+
+Then restart your dev server:
+
+  $ npm run dev
+  
+  ✓ Ready on http://localhost:3000
+
+Finally, test upload:
+
+  1. Go to: http://localhost:3000/admin
+  2. Click: "Add Product"
+  3. Click: "Upload" button
+  4. Select an image
+  5. ✅ Should show URL: https://xxx.blob.vercel-storage.com/...
+
+
+═══════════════════════════════════════════════════════════════
+  TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+❌ "Can't find Storage tab"
+   → Make sure you're viewing YOUR project, not someone else's
+
+❌ "No Blob option"
+   → Try refreshing the page
+   → Make sure your account has storage access
+
+❌ "Test script fails" or "Access denied" error
+   → This usually means the Blob store isn't created or isn't connected
+   → Check Vercel Dashboard → Your Project → Storage tab
+   → Do you see a "Vercel Blob" store listed?
+   → If NO: Create one following Steps 4-7 above
+   → If YES but still fails: Make sure it's connected to v0-tsuya project
+   → After creating/connecting, run: vercel env pull .env.local
+   → Then test again: node scripts/test-blob.js
+   
+❌ "Test script shows token but access denied"
+   → Token might be from wrong project or old/unlinked store
+   → Solution: Create a NEW Blob store in v0-tsuya project
+   → Or check if Blob store is properly connected in Storage tab
+   → Run: vercel env pull .env.local (to get fresh token)
+   → Test again: node scripts/test-blob.js
+
+❌ "Pulling from wrong project" or "Have multiple Vercel projects"
+   → Check which project is linked: vercel link (shows current link)
+   → To link to different project: vercel link (select different one)
+   → The .vercel/ folder stores which project is linked
+   → Each code folder can only link to ONE Vercel project at a time
+
+❌ "Upload fails in admin"
+   → Did you restart dev server after pulling env vars?
+   → Check Settings tab in /admin for connection status
+
+
+═══════════════════════════════════════════════════════════════
+  THAT'S IT!
+═══════════════════════════════════════════════════════════════
+
+You're now ready to use Vercel Blob for image uploads! 🎉
+
+For more help, see:
+  • QUICK_START.md - Fast setup guide
+  • VERCEL_BLOB_SETUP.md - Detailed documentation
+  • SETUP_SUMMARY.md - Complete overview
+

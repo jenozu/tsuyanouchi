@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
-import path from 'path'
+import { uploadProductImage } from '@/lib/supabase-helpers'
 
-// POST /api/upload - Upload image file
+// POST /api/upload - Upload image file to Supabase Storage
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -34,38 +32,33 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Create uploads directory if it doesn't exist
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads')
-    if (!existsSync(uploadsDir)) {
-      await mkdir(uploadsDir, { recursive: true })
-    }
-    
     // Generate unique filename
     const timestamp = Date.now()
     const originalName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
     const filename = `${timestamp}_${originalName}`
-    const filepath = path.join(uploadsDir, filename)
     
-    // Convert file to buffer and save
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    await writeFile(filepath, buffer)
+    // Upload to Supabase Storage
+    const imageUrl = await uploadProductImage(file, filename)
     
-    // Return public URL
-    const imageUrl = `/uploads/${filename}`
+    if (!imageUrl) {
+      return NextResponse.json(
+        { error: 'Failed to upload file to Supabase Storage' },
+        { status: 500 }
+      )
+    }
     
+    // Return the public URL
     return NextResponse.json({
       url: imageUrl,
-      filename,
+      filename: filename,
       size: file.size,
       type: file.type,
     })
   } catch (error) {
-    console.error('Error uploading file:', error)
+    console.error('Error uploading file to Supabase Storage:', error)
     return NextResponse.json(
-      { error: 'Failed to upload file' },
+      { error: 'Failed to upload file. Make sure Supabase is configured correctly.' },
       { status: 500 }
     )
   }
 }
-

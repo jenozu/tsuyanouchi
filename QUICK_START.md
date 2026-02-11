@@ -1,230 +1,253 @@
-# Quick Start Guide - Product Management System
+# 🎯 Quick Start: Vercel Blob Setup
 
-## ✅ What's Been Implemented
+## 🚀 You're Almost There!
 
-You now have a complete product management system similar to Gemini Studio, but integrated into your Next.js setup!
-
-### Features Implemented:
-1. ✅ **Admin Dashboard** at `/admin`
-   - Analytics with recharts
-   - Product CRUD operations
-   - Low stock alerts
-   - Revenue/inventory tracking
-
-2. ✅ **Image Upload System**
-   - Upload images directly in admin
-   - Stored in `/public/uploads/`
-   - No external image hosting needed
-
-3. ✅ **File-Based Storage**
-   - Products stored in `/data/products.json`
-   - Images in `/public/uploads/`
-   - No Sanity CMS dependency
-
-4. ✅ **AI Product Descriptions**
-   - One-click AI description generation
-   - Uses Google Gemini 2.0 Flash
-
-## 🚀 Getting Started
-
-### 1. Install Dependencies (Already Done)
-```bash
-npm install openai recharts --legacy-peer-deps
-```
-
-### 2. Set Up Environment Variable
-
-Create a `.env.local` file in your project root:
-
-```bash
-OPENAI_API_KEY=your_api_key_here
-```
-
-**Get your OpenAI API key:**
-1. Go to [OpenAI Platform](https://platform.openai.com/api-keys)
-2. Click "Create new secret key"
-3. Copy and paste into `.env.local`
-
-**Note:** Your ChatGPT Plus membership is separate! See `OPENAI_SETUP.md` for details.
-
-**Cost:** ~$0.15 per 1000 descriptions (super cheap!)
-
-### 3. Start the Development Server
-
-```bash
-npm run dev
-```
-
-### 4. Access Admin Dashboard
-
-Navigate to: `http://localhost:3000/admin`
-
-## 📦 Data Storage
-
-### Where Everything is Stored:
-
-```
-TsuyaNoUchi/
-├── data/
-│   ├── products.json      # Your product database
-│   ├── carts.json         # Shopping carts (future)
-│   ├── orders.json        # Orders (future)
-│   └── favorites.json     # User favorites (future)
-├── public/
-│   └── uploads/           # Uploaded product images
-│       ├── 1701234567_image1.jpg
-│       └── 1701234568_image2.png
-```
-
-**On Your VPS:**
-- All files stored locally on your server
-- No external database required
-- Easy to backup (just copy `/data` and `/public/uploads`)
-- Free (no database hosting costs)
-
-## 🎨 Using the Admin Dashboard
-
-### Adding a Product:
-
-1. Click "Products" in sidebar
-2. Click "Add Product" button
-3. Fill in:
-   - **Name:** Product name
-   - **Category:** e.g., "Art Prints"
-   - **Description:** Click "AI Generate" for instant description! 🤖
-   - **Price:** Selling price
-   - **Cost:** (Optional) Cost of goods for profit tracking
-   - **Stock:** Number of items available
-   - **Image:** Upload or paste URL
-   - **Sizes:** (Optional) Add size variants with different prices
-
-4. Click "Create Product"
-
-### Uploading Images:
-
-**Option 1: Upload File (Recommended)**
-- Click "Upload" button
-- Select image from computer
-- Image automatically uploads to `/public/uploads/`
-- URL auto-populated
-
-**Option 2: Paste URL**
-- Paste any image URL
-- Works with external images
-- Or use existing `/images/...` files
-
-### AI Description Generator:
-
-1. Enter product name and category
-2. Click the "AI Generate" button (wand icon)
-3. ChatGPT writes a beautiful, brand-appropriate description
-4. Edit as needed
-5. Save!
-
-**Cost:** ~$0.00015 per generation (basically free!)
-**Using:** OpenAI GPT-4o-mini (better quality than Gemini!)
-
-## 📊 Dashboard Analytics
-
-Your admin dashboard shows:
-
-- **Total Products:** Count of all products
-- **Total Stock:** Total items in inventory
-- **Inventory Value:** Total value of stock
-- **Low Stock Alerts:** Items with < 5 in stock
-- **Charts:**
-  - Sales trends (mock data initially)
-  - Inventory levels
-  - Category distribution
-  - Top products by value
-
-## 🔄 Migrating from Sanity (Optional)
-
-If you want to import your Sanity products:
-
-1. Export products from Sanity
-2. Transform to new format:
-   ```json
-   {
-     "id": "p1701234567",
-     "name": "Product Name",
-     "description": "Description",
-     "price": 45,
-     "cost": 15,
-     "category": "Art Prints",
-     "imageUrl": "/uploads/image.jpg",
-     "stock": 20,
-     "sizes": [
-       { "label": "A4", "price": 45 },
-       { "label": "A3", "price": 65 }
-     ]
-   }
-   ```
-3. Add to `/data/products.json`
-
-## 📝 API Endpoints
-
-You now have these API routes:
-
-```
-GET    /api/products           # Get all products
-POST   /api/products           # Create product
-GET    /api/products/[id]      # Get single product
-PUT    /api/products/[id]      # Update product
-DELETE /api/products/[id]      # Delete product
-POST   /api/upload             # Upload image
-POST   /api/generate-description  # AI description
-```
-
-## 🎯 Next Steps
-
-See `IMPLEMENTATION_ROADMAP.md` for:
-- Authentication (Google Sign-in)
-- Shopping cart
-- Payment processing (Stripe)
-- Order management
-- Email notifications
-- Full e-commerce features
-
-## 🐛 Troubleshooting
-
-### Images not showing?
-- Check `/public/uploads/` folder exists
-- Verify image URL starts with `/uploads/`
-- Check file permissions on VPS
-
-### AI not generating?
-- Verify `OPENAI_API_KEY` in `.env.local`
-- Check API key is valid at [OpenAI Platform](https://platform.openai.com/api-keys)
-- Ensure you have credits in your OpenAI account
-- Restart dev server after adding env variable
-- See `OPENAI_SETUP.md` for detailed setup instructions
-
-### Can't access admin?
-- URL: `http://localhost:3000/admin`
-- Make sure dev server is running
-- Check browser console for errors
-
-## 💾 Backup Your Data
-
-**Important:** Regularly backup these folders:
-
-```bash
-# On your VPS
-tar -czf backup-$(date +%Y%m%d).tar.gz data/ public/uploads/
-
-# Download backup
-scp user@yourserver:/path/backup-20241130.tar.gz ./backups/
-```
-
-## 🆘 Need Help?
-
-1. Check `IMPLEMENTATION_ROADMAP.md` for detailed guides
-2. Check browser console for errors
-3. Check terminal for server errors
-4. Verify all environment variables are set
+Your code is **already updated** to use Vercel Blob! Now you just need to create the storage in your Vercel Dashboard.
 
 ---
 
-**You're all set!** 🎉 Your product management system is ready to use. Start by adding your first product in the admin dashboard!
+## 📋 Your Current Status
 
+✅ **DONE:**
+- ✓ `@vercel/blob` package installed
+- ✓ Upload API route updated to use Blob storage
+- ✓ Admin interface ready to upload images
+- ✓ Vercel KV (Redis) connected
+
+⏳ **TO DO:**
+- Create Vercel Blob storage (5 minutes)
+- Pull environment variables locally
+- Test uploads
+
+---
+
+## 🎬 STEP 1: Create Blob Storage (Do This First!)
+
+### Option A: Via Vercel Dashboard (Recommended)
+
+1. **Open**: https://vercel.com/dashboard
+2. **Click**: Your project name
+3. **Click**: "Storage" tab (top navigation)
+4. **Click**: "Create Database" or "Create Store"
+5. **Select**: "Blob"
+6. **Click**: "Continue"
+7. **Name it**: `tsuya-images` (or anything you like)
+8. **Click**: "Create"
+9. **Select**: Your project from the dropdown
+10. **Click**: "Connect"
+
+✅ **Done!** The `BLOB_READ_WRITE_TOKEN` is now in your project's environment variables.
+
+### Option B: Via Vercel CLI (Alternative)
+
+```bash
+vercel link  # Link to your project if not already
+vercel storage create blob tsuya-images
+```
+
+---
+
+## 🎬 STEP 2: Pull Environment Variables Locally
+
+To use Blob storage in development, pull the token:
+
+```bash
+# Make sure Vercel CLI is installed
+npm i -g vercel
+
+# Pull environment variables
+vercel env pull .env.local
+```
+
+You should see output like:
+```
+✅ Downloaded environment variables to .env.local
+```
+
+---
+
+## 🎬 STEP 3: Verify the Token
+
+Check your `.env.local` file:
+
+```bash
+cat .env.local
+```
+
+You should see:
+```
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXXXXXXXX
+KV_REST_API_URL=https://...
+KV_REST_API_TOKEN=...
+```
+
+---
+
+## 🎬 STEP 4: Test the Connection
+
+Run the test script:
+
+```bash
+node scripts/test-blob.js
+```
+
+Expected output:
+```
+🔍 Testing Vercel Blob Connection...
+
+✅ BLOB_READ_WRITE_TOKEN is set
+📋 Test 1: Listing existing blobs...
+✅ Found 0 existing blob(s)
+📤 Test 2: Uploading a test file...
+✅ Test file uploaded successfully!
+
+🎉 SUCCESS! Vercel Blob is working correctly.
+```
+
+---
+
+## 🎬 STEP 5: Restart Dev Server & Test Upload
+
+1. **Stop** your current dev server (Ctrl+C if running)
+
+2. **Start** it again:
+   ```bash
+   npm run dev
+   ```
+
+3. **Open**: http://localhost:3000/admin
+
+4. **Click**: "Add Product"
+
+5. **Fill** in product details
+
+6. **Click**: "Upload" button and select an image
+
+7. **Watch**: The image should upload successfully! ✨
+
+8. **Check** the URL - it should look like:
+   ```
+   https://abc123xyz.public.blob.vercel-storage.com/products/1234567890_image.jpg
+   ```
+
+---
+
+## 🎉 Success Criteria
+
+You'll know it's working when:
+
+- ✅ Image upload shows "Upload successful" (not an error)
+- ✅ Image URL starts with `https://` and contains `.blob.vercel-storage.com`
+- ✅ Image preview appears below the upload button
+- ✅ Product saves with the Blob URL
+- ✅ Image displays on the product page
+
+---
+
+## 🐛 Troubleshooting
+
+### "BLOB_READ_WRITE_TOKEN is not set"
+
+**Fix**:
+```bash
+vercel env pull .env.local
+```
+Then restart dev server.
+
+### "Failed to upload file"
+
+**Check**:
+1. Is `.env.local` present?
+2. Run: `cat .env.local | grep BLOB`
+3. Does it show a token?
+4. Did you restart dev server after pulling env vars?
+
+### "No such store exists"
+
+**Fix**: Make sure you **created** the Blob store in Vercel Dashboard (Step 1).
+
+### Test script fails
+
+**Fix**:
+```bash
+npm install @vercel/blob
+vercel env pull .env.local
+node scripts/test-blob.js
+```
+
+---
+
+## 🚢 Deployment
+
+After testing locally:
+
+```bash
+git add .
+git commit -m "Add Vercel Blob storage for images"
+git push
+```
+
+Vercel will auto-deploy. **No additional config needed!** The `BLOB_READ_WRITE_TOKEN` is already in production.
+
+---
+
+## 📊 What Happens Now?
+
+### Before (Local Storage)
+```
+[User] → Upload Image → [Server Saves to /public/uploads/]
+❌ Problem: Files lost on redeploy (Vercel is serverless)
+```
+
+### After (Vercel Blob)
+```
+[User] → Upload Image → [Vercel Blob] → Returns CDN URL
+✅ Images persist forever
+✅ Global CDN (fast worldwide)
+✅ Automatic optimization
+```
+
+### Data Flow
+```
+1. User uploads image in /admin
+2. Frontend sends to /api/upload
+3. API uploads to Vercel Blob
+4. Blob returns URL: https://xyz.blob.vercel-storage.com/...
+5. URL saved to Vercel KV (with product data)
+6. Image displayed from Blob URL
+```
+
+---
+
+## 🎓 Summary
+
+| What | Why | Status |
+|------|-----|--------|
+| Vercel Blob | Store images persistently | ✅ Code ready |
+| BLOB_READ_WRITE_TOKEN | Authentication | ⏳ Need to pull |
+| Vercel KV | Store product data | ✅ Already working |
+| `/api/upload` | Upload endpoint | ✅ Updated |
+
+---
+
+## 📞 Next Steps
+
+1. **Now**: Go create the Blob storage in Vercel Dashboard → Storage
+2. **Then**: Run `vercel env pull .env.local`
+3. **Finally**: Test upload in `/admin`
+
+**You're 5 minutes away from working image uploads!** 🚀
+
+---
+
+## 🔗 Useful Links
+
+- [Vercel Dashboard](https://vercel.com/dashboard) - Create Blob storage here
+- [Vercel Blob Docs](https://vercel.com/docs/storage/vercel-blob)
+- [Your Admin Dashboard](http://localhost:3000/admin) - Test uploads here
+
+---
+
+**Questions?** 
+- See `VERCEL_BLOB_SETUP.md` for detailed documentation
+- Run `node scripts/test-blob.js` to diagnose issues

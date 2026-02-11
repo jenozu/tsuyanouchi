@@ -660,16 +660,62 @@ export default function AdminPage() {
           {activeTab === 'SETTINGS' && (
             <div className="space-y-6">
               <h2 className="text-3xl font-serif text-[#2D2A26]">Settings</h2>
+              
+              {/* Storage Configuration */}
               <div className="bg-white border border-[#E5E0D8] p-6">
-                <h3 className="font-semibold text-[#2D2A26] mb-4">Environment Configuration</h3>
+                <h3 className="font-semibold text-[#2D2A26] mb-4">Storage Configuration</h3>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 bg-[#F2EFE9]">
+                    <div>
+                      <p className="font-medium text-[#2D2A26]">Vercel Blob Storage</p>
+                      <p className="text-xs text-[#786B59]">Image uploads</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {typeof process !== 'undefined' && process.env.BLOB_READ_WRITE_TOKEN ? (
+                        <span className="text-xs bg-[#5C7C66] text-white px-2 py-1 rounded">✓ Connected</span>
+                      ) : (
+                        <span className="text-xs bg-[#8C3F3F] text-white px-2 py-1 rounded">⚠ Not configured</span>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 bg-[#F2EFE9]">
+                    <div>
+                      <p className="font-medium text-[#2D2A26]">Vercel KV (Redis)</p>
+                      <p className="text-xs text-[#786B59]">Product data, cart, favorites</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {typeof process !== 'undefined' && process.env.KV_REST_API_URL ? (
+                        <span className="text-xs bg-[#5C7C66] text-white px-2 py-1 rounded">✓ Connected</span>
+                      ) : (
+                        <span className="text-xs bg-[#8C3F3F] text-white px-2 py-1 rounded">⚠ Not configured</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-4 bg-[#F9F8F4] border border-[#E5E0D8]">
+                  <p className="text-xs text-[#786B59] mb-2">
+                    <strong>Setup Instructions:</strong>
+                  </p>
+                  <ol className="text-xs text-[#786B59] space-y-1 list-decimal list-inside">
+                    <li>Go to Vercel Dashboard → Storage → Create Blob Store</li>
+                    <li>Connect Blob store to your project</li>
+                    <li>Run: <code className="bg-white px-1">vercel env pull .env.local</code></li>
+                    <li>Restart dev server</li>
+                  </ol>
+                  <p className="text-xs text-[#786B59] mt-2">
+                    See <code className="bg-white px-1">QUICK_START.md</code> for detailed instructions.
+                  </p>
+                </div>
+              </div>
+              
+              {/* API Configuration */}
+              <div className="bg-white border border-[#E5E0D8] p-6">
+                <h3 className="font-semibold text-[#2D2A26] mb-4">API Configuration</h3>
                 <p className="text-sm text-[#786B59] mb-2">
-                  Set <code className="bg-[#F2EFE9] px-2 py-1">OPENAI_API_KEY</code> in your <code className="bg-[#F2EFE9] px-2 py-1">.env.local</code> file to enable AI features.
-                </p>
-                <p className="text-sm text-[#786B59]">
-                  Images are stored in <code className="bg-[#F2EFE9] px-2 py-1">/public/uploads/</code>
-                </p>
-                <p className="text-sm text-[#786B59]">
-                  Products are stored in <code className="bg-[#F2EFE9] px-2 py-1">/data/products.json</code>
+                  Set <code className="bg-[#F2EFE9] px-2 py-1">OPENAI_API_KEY</code> in your <code className="bg-[#F2EFE9] px-2 py-1">.env.local</code> file to enable AI description generation.
                 </p>
               </div>
             </div>

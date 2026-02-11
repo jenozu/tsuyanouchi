@@ -2,6 +2,7 @@ import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ShopGrid from "@/components/shop/shop-grid"
 import { getProducts } from "@/lib/products"
+import { getFavorites } from "@/lib/favorites-storage"
 
 export const metadata = {
   title: "Shop Prints — TSUYA NO UCHI",
@@ -10,6 +11,7 @@ export const metadata = {
 
 export default async function ShopPage() {
   const products = await getProducts()
+  const favoriteIds = await getFavorites()
 
   return (
     <main className="min-h-screen flex flex-col">
@@ -32,7 +34,7 @@ export default async function ShopPage() {
 
       <section className="flex-1 bg-white">
         <div className="max-w-6xl mx-auto px-6 py-8">
-          <ShopGrid initialProducts={products} />
+          <ShopGrid initialProducts={products} favoriteIds={favoriteIds} />
         </div>
       </section>
       <Footer />

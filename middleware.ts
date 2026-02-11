@@ -1,14 +1,27 @@
-// Middleware - Currently disabled for initial deployment
-// This will be enabled in Phase 2 when authentication is set up
-// See IMPLEMENTATION_ROADMAP.md for setup instructions
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
-// export { auth as middleware } from "@/auth"
+export function middleware(request: NextRequest) {
+  // Check if the request is for admin routes (except login)
+  if (request.nextUrl.pathname.startsWith('/admin') && 
+      !request.nextUrl.pathname.startsWith('/admin/login')) {
+    
+    // Check for admin session cookie
+    const adminSession = request.cookies.get('admin_session')
+    
+    if (!adminSession || adminSession.value !== 'authenticated') {
+      // Redirect to login page
+      const loginUrl = new URL('/admin/login', request.url)
+      return NextResponse.redirect(loginUrl)
+    }
+  }
+  
+  // Allow request to continue
+  return NextResponse.next()
+}
 
-// export const config = {
-//   matcher: ["/account/:path*", "/admin/:path*"],
-// }
-
-// For now, no middleware - all routes are public
-export function middleware() {
-  return null
+export const config = {
+  matcher: [
+    '/admin/:path*',
+  ],
 }

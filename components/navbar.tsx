@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useToast } from "@/hooks/use-toast"
 import { Menu, ShoppingBag, Heart } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useCart } from "@/lib/cart-context"
+import { useFavorites } from "@/lib/favorites-context"
 import {
   Sheet,
   SheetContent,
@@ -32,8 +33,11 @@ interface NavbarProps {
 }
 
 export default function Navbar({ session }: NavbarProps) {
-  const { toast } = useToast()
-
+  const { getCartCount } = useCart()
+  const { getFavoritesCount } = useFavorites()
+  
+  const cartCount = getCartCount()
+  const favoritesCount = getFavoritesCount()
   return (
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-white/70 bg-white/90 border-b">
       <div className="max-w-6xl mx-auto h-16 px-4 md:px-6 flex items-center justify-between">
@@ -58,25 +62,30 @@ export default function Navbar({ session }: NavbarProps) {
             <Link
               href="/favourites"
               aria-label="Favourites"
-              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30 relative"
             >
               <Heart className="h-5 w-5" />
+              {favoritesCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-emerald-900 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                  {favoritesCount > 9 ? '9+' : favoritesCount}
+                </span>
+              )}
               <span className="sr-only">Favourites</span>
             </Link>
 
-            <button
+            <Link
+              href="/cart"
               aria-label="Cart"
-              onClick={() =>
-                toast({
-                  title: "Cart coming soon",
-                  description: "Checkout will be added. For now, explore the collection.",
-                })
-              }
-              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+              className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30 relative"
             >
               <ShoppingBag className="h-5 w-5" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-emerald-900 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
               <span className="sr-only">Cart</span>
-            </button>
+            </Link>
 
             {session ? (
               <DropdownMenu>
@@ -125,25 +134,30 @@ export default function Navbar({ session }: NavbarProps) {
           <Link
             href="/favourites"
             aria-label="Favourites"
-            className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+            className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30 relative"
           >
             <Heart className="h-5 w-5" />
+            {favoritesCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-emerald-900 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                {favoritesCount > 9 ? '9+' : favoritesCount}
+              </span>
+            )}
             <span className="sr-only">Favourites</span>
           </Link>
 
-          <button
+          <Link
+            href="/cart"
             aria-label="Cart"
-            onClick={() =>
-              toast({
-                title: "Cart coming soon",
-                description: "Checkout will be added. For now, explore the collection.",
-              })
-            }
-            className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30"
+            className="inline-grid h-10 w-10 place-items-center rounded-full text-zinc-700 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-900/30 relative"
           >
             <ShoppingBag className="h-5 w-5" />
+            {cartCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-emerald-900 text-white text-xs font-semibold rounded-full h-5 w-5 flex items-center justify-center">
+                {cartCount > 9 ? '9+' : cartCount}
+              </span>
+            )}
             <span className="sr-only">Cart</span>
-          </button>
+          </Link>
 
           {session ? (
             <DropdownMenu>

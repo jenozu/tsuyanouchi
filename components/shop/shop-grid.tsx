@@ -6,8 +6,10 @@ import Filters, { type FiltersState } from "@/components/shop/filters"
 
 export default function ShopGrid({
   initialProducts = [],
+  favoriteIds = [],
 }: {
   initialProducts?: Product[]
+  favoriteIds?: string[]
 }) {
   const [filters, setFilters] = useState<FiltersState>({ size: "all", tag: "all" })
 
@@ -29,7 +31,7 @@ export default function ShopGrid({
       />
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {filtered.map((p) => (
-          <ProductCard key={p.id} product={p} />
+          <ProductCard key={p.id} product={p} isFavorite={favoriteIds.includes(p.id)} />
         ))}
       </div>
       {filtered.length === 0 && (

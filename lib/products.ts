@@ -1,8 +1,8 @@
-import { getProducts as getProductsFromStorage, getProduct as getProductFromStorage } from '@/lib/product-storage'
-import { Product as StorageProduct } from '@/lib/product-storage'
+import { getProducts as getProductsFromSupabase, getProduct as getProductFromSupabase, getProductsByCategory as getProductsByCategoryFromSupabase } from '@/lib/supabase-helpers'
+import { Product as SupabaseProduct } from '@/lib/supabase-helpers'
 
-// Map storage product format to frontend format (for compatibility with existing pages)
-function mapProduct(product: StorageProduct) {
+// Map Supabase product format to frontend format (for compatibility with existing pages)
+function mapProduct(product: SupabaseProduct) {
   return {
     id: product.id,
     title: product.name, // Map name to title
@@ -10,7 +10,7 @@ function mapProduct(product: StorageProduct) {
     price: product.price,
     cost: product.cost,
     category: product.category,
-    image: product.imageUrl, // Map imageUrl to image
+    image: product.image_url, // Map image_url to image
     stock: product.stock,
     sizes: product.sizes,
   }
@@ -18,13 +18,13 @@ function mapProduct(product: StorageProduct) {
 
 // Get all products (compatible with existing pages)
 export async function getProducts() {
-  const products = getProductsFromStorage()
+  const products = await getProductsFromSupabase()
   return products.map(mapProduct)
 }
 
 // Get single product by ID (compatible with existing pages)
 export async function getProduct(id: string) {
-  const product = getProductFromStorage(id)
+  const product = await getProductFromSupabase(id)
   if (!product) return null
   return mapProduct(product)
 }
@@ -40,13 +40,13 @@ export async function getProductById(id: string) {
 
 // Get products by category
 export async function getProductsByCategory(category: string) {
-  const products = getProductsFromStorage()
-  return products.filter(p => p.category === category).map(mapProduct)
+  const products = await getProductsByCategoryFromSupabase(category)
+  return products.map(mapProduct)
 }
 
 // Search products
 export async function searchProducts(query: string) {
-  const products = getProductsFromStorage()
+  const products = await getProductsFromSupabase()
   const lowerQuery = query.toLowerCase()
   
   return products

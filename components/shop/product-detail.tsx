@@ -9,17 +9,21 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Heart, ChevronRight } from 'lucide-react'
+import { Heart, ChevronRight, ShoppingBag } from 'lucide-react'
 import ProductCard, { type Product } from "@/components/product-card"
 import { useToast } from "@/hooks/use-toast"
 import { cn } from "@/lib/utils"
+import { FavoritesClient } from "@/components/favorites-client"
+import { AddToCartButton } from "@/components/add-to-cart-button"
 
 export default function ProductDetail({
   product,
   related = [],
+  isFavorite = false,
 }: {
   product: Product
   related?: Product[]
+  isFavorite?: boolean
 }) {
   const gallery = product.gallery && product.gallery.length > 0 ? product.gallery : [product.image]
   const [active, setActive] = useState(0)
@@ -156,24 +160,16 @@ export default function ProductDetail({
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2">
-                <Button
-                  className="bg-emerald-900 hover:bg-emerald-800 text-white"
-                  onClick={() =>
-                    toast({
-                      title: "Added to cart (demo)",
-                      description: `${qty} × ${product.title} — ${size}`,
-                    })
-                  }
-                >
-                  Add to cart
-                </Button>
-                <Button variant="outline" className="gap-2" asChild>
-                  <Link href="/favourites" aria-label="Add to favourites">
-                    <Heart className="w-4 h-4" />
-                    Save
-                  </Link>
-                </Button>
+              <AddToCartButton 
+                productId={product.id}
+                productName={product.title}
+                price={product.price}
+                quantity={qty}
+                selectedSize={size}
+                imageUrl={product.image}
+              />
+              <div className="mt-2">
+                <FavoritesClient productId={product.id} initialFavorite={isFavorite} />
               </div>
 
               {/* Description */}

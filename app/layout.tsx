@@ -3,6 +3,8 @@ import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import './globals.css'
 import { Toaster } from '@/components/ui/toaster'
+import { CartProvider } from '@/lib/cart-context'
+import { FavoritesProvider } from '@/lib/favorites-context'
 
 export const metadata: Metadata = {
   title: 'TSUYA NO UCHI — Ukiyo‑e Style Anime Art Prints',
@@ -32,8 +34,12 @@ html {
         `}</style>
       </head>
       <body>
-        {children}
-        <Toaster />
+        <CartProvider>
+          <FavoritesProvider>
+            {children}
+            <Toaster />
+          </FavoritesProvider>
+        </CartProvider>
       </body>
     </html>
   )
