@@ -2,7 +2,6 @@ import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ShopGrid from "@/components/shop/shop-grid"
 import { getProducts } from "@/lib/products"
-import { getFavorites } from "@/lib/favorites-storage"
 
 export const metadata = {
   title: "Shop Prints — TSUYA NO UCHI",
@@ -11,7 +10,7 @@ export const metadata = {
 
 export default async function ShopPage() {
   const products = await getProducts()
-  const favoriteIds = await getFavorites()
+  const favoriteIds: string[] = [] // Favorites now managed client-side
 
   return (
     <main className="min-h-screen flex flex-col">

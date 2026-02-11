@@ -4,7 +4,6 @@ import NavbarWrapper from "@/components/navbar-wrapper"
 import Footer from "@/components/footer"
 import ProductDetail from "@/components/shop/product-detail"
 import { getProducts, getProduct } from "@/lib/products"
-import { getFavorites } from "@/lib/favorites-storage"
 
 type Params = { slug: string }
 
@@ -27,10 +26,10 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 }
 
 export default async function ProductPage({ params }: { params: Params }) {
-  const [product, allProducts, favoriteIds] = await Promise.all([
+  const favoriteIds: string[] = [] // Favorites now managed client-side
+  const [product, allProducts] = await Promise.all([
     getProduct(params.slug),
     getProducts(),
-    getFavorites(),
   ])
   
   if (!product) return notFound()

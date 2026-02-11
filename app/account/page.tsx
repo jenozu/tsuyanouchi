@@ -4,18 +4,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { User, ShoppingBag, Heart, Package } from "lucide-react"
 import Link from "next/link"
-import { getCart, getCartItemCount, getCartTotal } from "@/lib/cart-storage"
-import { getFavorites } from "@/lib/favorites-storage"
 
 export const metadata = {
   title: "My Account — TSUYA NO UCHI",
   description: "Your account dashboard.",
 }
 
-export default async function AccountPage() {
-  const cartCount = await getCartItemCount()
-  const cartTotal = await getCartTotal()
-  const favoritesCount = (await getFavorites()).length
+export default function AccountPage() {
+  // Cart and favorites counts are now managed client-side via context
+  const cartCount = 0
+  const cartTotal = 0
+  const favoritesCount = 0
   
   return (
     <main className="min-h-screen flex flex-col">
