@@ -1,0 +1,156 @@
+import React, { useState, useEffect } from 'react';
+import { Product, ProductSize } from '../types';
+import { Button } from '../components/ui/Button';
+import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown } from 'lucide-react';
+
+interface ProductDetailProps {
+  product: Product;
+  onAddToCart: (product: Product) => void;
+  onBack: () => void;
+  isFavourite: boolean;
+  onToggleFavourite: (id: string) => void;
+}
+
+export const ProductDetail: React.FC<ProductDetailProps> = ({ 
+  product, 
+  onAddToCart, 
+  onBack,
+  isFavourite,
+  onToggleFavourite
+}) => {
+  const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(
+    product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined
+  );
+
+  // Reset selected size when product changes
+  useEffect(() => {
+    if (product.sizes && product.sizes.length > 0) {
+        setSelectedSize(product.sizes[0]);
+    } else {
+        setSelectedSize(undefined);
+    }
+  }, [product]);
+
+  const currentPrice = selectedSize ? selectedSize.price : product.price;
+
+  const handleAddToCart = () => {
+    // Create a copy of the product with the selected size attached
+    const productToAdd = {
+        ...product,
+        selectedSize: selectedSize
+    };
+    onAddToCart(productToAdd);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F9F8F4] animate-fade-in">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <button 
+          onClick={onBack}
+          className="flex items-center text-sm text-[#786B59] hover:text-[#2D2A26] transition-colors mb-8 group"
+        >
+          <ArrowLeft size={16} className="mr-2 group-hover:-translate-x-1 transition-transform" />
+          Back to Shop
+        </button>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+          {/* Image Section */}
+          <div className="relative aspect-[3/4] bg-[#F2EFE9] overflow-hidden shadow-sm border border-[#E5E0D8]">
+            <img 
+              src={product.imageUrl} 
+              alt={product.name} 
+              className="w-full h-full object-cover mix-blend-multiply opacity-95"
+            />
+          </div>
+
+          {/* Details Section */}
+          <div className="flex flex-col space-y-8">
+            <div className="space-y-4 border-b border-[#E5E0D8] pb-6">
+              <span className="text-sm font-medium text-[#786B59] uppercase tracking-wider">{product.category}</span>
+              <h1 className="text-4xl md:text-5xl font-serif text-[#2D2A26] leading-tight">{product.name}</h1>
+              <p className="text-2xl font-medium text-[#4A4036]">${currentPrice.toLocaleString()}</p>
+            </div>
+            
+            {/* Size Selector */}
+            {product.sizes && product.sizes.length > 0 && (
+                <div className="space-y-3">
+                    <label className="text-sm font-medium text-[#2D2A26] uppercase tracking-wide">Select Size</label>
+                    <div className="relative">
+                        <select 
+                            value={selectedSize?.label}
+                            onChange={(e) => {
+                                const size = product.sizes?.find(s => s.label === e.target.value);
+                                setSelectedSize(size);
+                            }}
+                            className="w-full appearance-none bg-white border border-[#E5E0D8] px-4 py-3 pr-8 rounded-none text-[#2D2A26] focus:outline-none focus:border-[#2D2A26] cursor-pointer"
+                        >
+                            {product.sizes.map((size) => (
+                                <option key={size.label} value={size.label}>
+                                    {size.label} - ${size.price.toLocaleString()}
+                                </option>
+                            ))}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-3.5 text-[#786B59] pointer-events-none" size={16} />
+                    </div>
+                </div>
+            )}
+
+            <div className="prose prose-stone">
+              <p className="text-[#4A4036] leading-relaxed text-lg font-light">
+                {product.description}
+              </p>
+            </div>
+
+            <div className="pt-6 flex gap-4">
+              <Button 
+                onClick={handleAddToCart} 
+                className="flex-1 md:flex-none md:min-w-[200px] flex items-center justify-center gap-2"
+              >
+                <ShoppingBag size={20} />
+                Add to Cart
+              </Button>
+              
+              <button 
+                onClick={() => onToggleFavourite(product.id)}
+                className={`p-4 border transition-colors ${
+                    isFavourite 
+                    ? 'border-red-200 bg-red-50 text-[#8C3F3F]' 
+                    : 'border-[#E5E0D8] hover:border-[#2D2A26] text-[#2D2A26]'
+                }`}
+              >
+                <Heart size={20} className={isFavourite ? "fill-current" : ""} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 pt-6">
+                <div className="flex items-start gap-3">
+                  <Truck className="text-[#786B59] mt-1" size={20} />
+                  <div>
+                    <h4 className="text-sm font-medium text-[#2D2A26]">Free Shipping</h4>
+                    <p className="text-xs text-[#786B59] mt-1">On all orders over $500</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <ShieldCheck className="text-[#786B59] mt-1" size={20} />
+                  <div>
+                    <h4 className="text-sm font-medium text-[#2D2A26]">Authenticity</h4>
+                    <p className="text-xs text-[#786B59] mt-1">Guaranteed genuine craft</p>
+                  </div>
+                </div>
+              </div>
+            
+            <div className="bg-[#F2EFE9] p-6 border border-[#E5E0D8] mt-8">
+                <p className="text-xs text-[#786B59] uppercase tracking-wide mb-2 font-semibold">Stock Status</p>
+                <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${product.stock > 0 ? 'bg-[#5C7C66]' : 'bg-[#8C3F3F]'}`}></div>
+                    <span className="text-sm text-[#2D2A26]">
+                        {product.stock > 10 ? 'In Stock & Ready to Ship' : product.stock > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
+                    </span>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

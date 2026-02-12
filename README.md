@@ -1,456 +1,250 @@
-# TSUYA NO UCHI — Ukiyo‑e Style Anime Art Prints
+# Tsuyanouchi — House of Lustre
 
-A modern e-commerce website for ukiyo‑e inspired anime art prints. Built with Next.js 15, Supabase, Stripe, and Tailwind CSS v4.
+A luxury e-commerce platform built with Next.js 15, featuring a curated collection of Japanese-inspired lifestyle goods.
 
-![TSUYA NO UCHI](public/images/tsuya-triple.png)
+![Tsuyanouchi](https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=1200&h=400)
 
-## ✨ Features
+## Features
 
-- **🎨 Beautiful Ukiyo-e Aesthetic**: Soft palettes, paper textures, and timeless design
-- **🛍️ Full E-commerce Platform**: Browse, cart, favorites, and complete checkout with Stripe
-- **📱 Fully Responsive**: Optimized for desktop, tablet, and mobile devices
-- **💳 Secure Payments**: Stripe integration with webhook support
-- **📧 Email Notifications**: Order confirmations and admin alerts via Resend
-- **🔐 Admin Dashboard**: Password-protected admin panel for product and order management
-- **⚡ High Performance**: Built with Next.js 15 App Router and React 19
-- **🎭 Modern UI Components**: shadcn/ui components with Tailwind CSS v4
-- **🔍 SEO Optimized**: Proper metadata and OpenGraph tags for better discoverability
-- **☁️ Cloud Infrastructure**: Supabase for database and storage with global CDN
-- **🗄️ Real-time Features**: Instant cart and favorites updates with Context API
+### Customer Features
+- 🛍️ **Product Catalog** - Browse beautifully curated products with detailed descriptions
+- 🔍 **Search & Filter** - Find products by category and search terms
+- ❤️ **Favorites** - Save products to favorites with localStorage persistence
+- 🛒 **Shopping Cart** - Full-featured cart with quantity management
+- 💳 **Secure Checkout** - Stripe-powered payment processing
+- 📧 **Order Confirmation** - Automated email notifications via Resend
+- 📦 **Multiple Shipping Options** - Domestic and international shipping rates
 
-## 🚀 Tech Stack
+### Admin Features
+- 🔐 **Password-Protected Admin** - Secure access with middleware protection
+- 📊 **Executive Dashboard** - Real-time analytics and KPIs
+- 📈 **Interactive Charts** - Sales, inventory, and valuation visualizations using Recharts
+- ✏️ **Product Management** - Full CRUD operations with image upload
+- 🤖 **AI Descriptions** - Generate product descriptions using Google Gemini AI
+- 📥 **CSV Import** - Bulk product import functionality
+- 🎨 **Size Variations** - Support for multiple sizes with different prices
+- 📋 **Order Management** - View and manage customer orders
+- 🚚 **Shipping Configuration** - Manage shipping rates per country
 
-- **Framework**: [Next.js 15](https://nextjs.org/) (App Router)
-- **Database**: [Supabase](https://supabase.com/) (PostgreSQL + Row Level Security)
-- **Storage**: [Supabase Storage](https://supabase.com/docs/guides/storage) (Image uploads)
-- **Payments**: [Stripe](https://stripe.com/) (Payment processing + webhooks)
-- **Email**: [Resend](https://resend.com/) (Transactional emails)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
-- **Font**: [Geist Sans & Mono](https://vercel.com/font)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Package Manager**: [npm](https://www.npmjs.com/)
+## Tech Stack
 
-## 📋 Prerequisites
+- **Framework**: Next.js 15 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS v4
+- **Database**: Supabase (PostgreSQL)
+- **Payments**: Stripe
+- **Email**: Resend
+- **AI**: Google Gemini API
+- **Charts**: Recharts
+- **Forms**: React Hook Form + Zod
+- **Deployment**: Vercel
 
-Before you begin, ensure you have the following:
+## Design Philosophy
 
-- **Node.js** (v20 or higher)
-- **npm** (v10 or higher)
-- **Git**
-- **Supabase Account** (free tier works)
-- **Stripe Account** (for payments)
-- **Resend Account** (for emails)
+Tsuyanouchi embodies minimalist Japanese aesthetics with a focus on:
+- Clean, serif typography
+- Muted, luxury color palette (dark browns, beiges, and whites)
+- Spacious layouts with intentional white space
+- High-quality product imagery
+- Smooth transitions and subtle animations
 
-## 🛠️ Quick Start
+### Color Palette
+- Primary Dark: `#2D2A26`
+- Background Light: `#F9F8F4`
+- Accent Beige: `#E5E0D8`
+- Text Muted: `#786B59`
+- Error Red: `#8C3F3F`
+- Success Green: `#5C7C66`
 
-### 1. Clone the Repository
+## Getting Started
 
-```bash
-git clone https://github.com/jenozu/tsuyanouchi.git
-cd tsuyanouchi
-```
+### Prerequisites
+- Node.js 20+
+- npm or yarn
+- Accounts for: Supabase, Stripe, Resend, Google AI Studio
 
-### 2. Install Dependencies
+### Quick Start
 
-```bash
-npm install
-```
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd gemini/tsuyanouchi
+   ```
 
-### 3. Set Up External Services
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-Follow the detailed setup guide in **[TODO.md](./TODO.md)** to configure:
-- Supabase (database + storage)
-- Stripe (payments)
-- Resend (emails)
+3. **Set up environment variables**
+   - See `ENV_TEMPLATE.md` for all required variables
+   - Follow `SETUP.md` for detailed configuration instructions
 
-Or use the quick reference in **[COMPLETED_WORK.md](./COMPLETED_WORK.md)**
+4. **Run database migrations**
+   - Execute the SQL in `SUPABASE_SCHEMA.sql` in your Supabase SQL Editor
 
-### 4. Configure Environment Variables
+5. **Start development server**
+   ```bash
+   npm run dev
+   ```
 
-Create a `.env.local` file in the root directory. See **[ENV_TEMPLATE.md](./ENV_TEMPLATE.md)** for the complete template.
+6. **Open your browser**
+   - Visit [http://localhost:3000](http://localhost:3000)
+   - Admin portal: [http://localhost:3000/admin](http://localhost:3000/admin)
 
-Required variables:
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_your-key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-key
-STRIPE_WEBHOOK_SECRET=whsec_your-secret
-
-# Admin
-ADMIN_PASSWORD=your-secure-password
-
-# Resend
-RESEND_API_KEY=re_your-key
-ORDER_NOTIFICATION_EMAIL=your-email@example.com
-```
-
-### 5. Set Up Database
-
-1. Go to your Supabase dashboard
-2. Open SQL Editor
-3. Copy and paste the contents of `supabase-setup.sql`
-4. Run the query
-
-This creates all tables, indexes, RLS policies, and default data.
-
-### 6. Run Development Server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 📚 Documentation
-
-- **[TODO.md](./TODO.md)** - Step-by-step setup checklist
-- **[COMPLETED_WORK.md](./COMPLETED_WORK.md)** - Summary of completed features
-- **[AUTOMATED_IMPROVEMENTS.md](./AUTOMATED_IMPROVEMENTS.md)** - Technical improvements details
-- **[ENV_TEMPLATE.md](./ENV_TEMPLATE.md)** - Environment variables guide
-- **[docs/koji_tsuya_integration_plan.md](./docs/koji_tsuya_integration_plan.md)** - Full integration plan
-
-```bash
-pnpm install
-```
-
-### 3. Set Up Environment Variables
-
-Create a `.env.local` file in the root directory:
-
-```bash
-# Sanity Configuration
-# Get these values from https://www.sanity.io/manage
-NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id_here
-NEXT_PUBLIC_SANITY_DATASET=production
-
-# Optional: For Sanity Studio authentication and live preview
-# Create a token with Viewer permissions at https://www.sanity.io/manage
-SANITY_API_READ_TOKEN=your_read_token_here
-
-# Vercel Storage (auto-configured when deploying to Vercel)
-# For local development: run `vercel env pull .env.local`
-BLOB_READ_WRITE_TOKEN=your_blob_token_here
-KV_REST_API_URL=your_kv_url_here
-KV_REST_API_TOKEN=your_kv_token_here
-```
-
-### 4. Set Up Database
-
-1. Go to your Supabase dashboard
-2. Open SQL Editor
-3. Copy and paste the contents of `supabase-setup.sql`
-4. Run the query
-
-This creates all tables, indexes, RLS policies, and default data.
-
-### 5. Run Development Server
-
-```bash
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## 📂 Project Structure
+## Project Structure
 
 ```
-tsuyanouchi/
-├── app/                      # Next.js App Router
-│   ├── globals.css          # Global styles with Tailwind v4
-│   ├── layout.tsx           # Root layout with providers
-│   ├── page.tsx             # Homepage
-│   ├── shop/                # Shop pages
-│   │   ├── page.tsx        # Shop listing
-│   │   └── [slug]/         # Product detail pages
-│   ├── cart/               # Shopping cart
-│   ├── checkout/           # Checkout flow
-│   ├── favourites/         # Favorites page
-│   ├── thank-you/          # Order confirmation
-│   ├── admin/              # Admin dashboard
-│   │   ├── login/         # Admin authentication
-│   │   └── page.tsx       # Dashboard home
-│   └── api/                # API routes
-│       ├── products/      # Product CRUD
-│       ├── orders/        # Order management
-│       ├── payments/      # Stripe integration
-│       └── webhooks/      # Stripe webhooks
-├── components/              # React components
-│   ├── navbar.tsx          # Navigation with badges
-│   ├── footer.tsx          # Footer
-│   ├── product-card.tsx    # Product card
-│   ├── add-to-cart-button.tsx
-│   ├── favorites-client.tsx
-│   ├── shop/               # Shop-specific components
-│   └── ui/                 # shadcn/ui components
-├── lib/                     # Utility functions
-│   ├── supabase-client.ts  # Supabase setup
-│   ├── supabase-helpers.ts # Database helpers
-│   ├── cart-context.tsx    # Cart state management
-│   ├── favorites-context.tsx # Favorites state
-│   ├── stripe.ts           # Stripe utilities
-│   ├── email.ts            # Email sending
-│   └── products.ts         # Product utilities
-├── scripts/                 # Utility scripts
-│   └── migrate-to-supabase.ts
-├── docs/                    # Documentation
-├── public/                  # Static assets
-├── supabase-setup.sql      # Database setup
-└── middleware.ts           # Route protection
+gemini/tsuyanouchi/
+├── app/                        # Next.js App Router
+│   ├── page.tsx               # Homepage
+│   ├── shop/                  # Shop pages
+│   │   ├── page.tsx          # Product listing
+│   │   └── [slug]/page.tsx   # Product detail
+│   ├── cart/                  # Shopping cart
+│   ├── checkout/              # Checkout flow
+│   ├── favourites/            # Favorites page
+│   ├── thank-you/             # Order confirmation
+│   ├── admin/                 # Admin dashboard
+│   │   ├── login/            # Admin authentication
+│   │   └── page.tsx          # Dashboard with analytics
+│   └── api/                   # API routes
+│       ├── products/          # Product CRUD
+│       ├── orders/            # Order management
+│       ├── payments/          # Stripe integration
+│       ├── shipping/          # Shipping rates
+│       ├── webhooks/          # Stripe webhooks
+│       └── admin/             # Admin auth
+├── components/                # React components
+│   ├── navbar.tsx            # Navigation bar
+│   ├── footer.tsx            # Footer
+│   ├── cart-drawer.tsx       # Sliding cart drawer
+│   ├── product-card.tsx      # Product card
+│   └── ui/                   # UI components
+├── lib/                       # Utilities
+│   ├── supabase-client.ts    # Supabase setup
+│   ├── supabase-helpers.ts   # Database operations
+│   ├── stripe.ts             # Stripe utilities
+│   ├── email.ts              # Email via Resend
+│   ├── cart-context.tsx      # Cart state management
+│   ├── favorites-context.tsx # Favorites management
+│   └── utils.ts              # Helper functions
+├── services/                  # External services
+│   └── gemini.ts             # AI description generation
+├── middleware.ts              # Route protection
+└── SETUP.md                   # Detailed setup guide
 ```
 
-## 🎨 Key Features
+## Key Routes
 
-### Homepage
-- Hero section with featured artwork
-- About section with brand story
-- Featured products showcase
+### Public Routes
+- `/` - Homepage with hero and featured products
+- `/shop` - Full product catalog with search and filters
+- `/shop/[slug]` - Product detail page
+- `/cart` - Shopping cart
+- `/checkout` - Secure checkout flow
+- `/favourites` - Saved favorites
+- `/thank-you` - Order confirmation
+- `/account` - Account page (coming soon)
 
-### Shop Page
-- Product grid with filtering
-- Filter by size and category
-- Responsive layout
-- Real-time favorites and cart badges
+### Admin Routes (Protected)
+- `/admin/login` - Admin authentication
+- `/admin` - Dashboard with analytics
+  - Products tab - Manage inventory
+  - Orders tab - View and manage orders
+  - Shipping tab - Configure shipping rates
+  - Settings tab - System settings
 
-### Product Detail Page
-- Image gallery with thumbnails
-- Size selector
-- Quantity picker
-- Instant add to cart
-- Instant favorites toggle
-- Related products recommendations
+### API Routes
+- `GET /api/products` - List all products
+- `POST /api/products` - Create product
+- `GET /api/products/[id]` - Get product
+- `PUT /api/products/[id]` - Update product
+- `DELETE /api/products/[id]` - Delete product
+- `POST /api/orders` - Create order
+- `GET /api/shipping/rates` - Get shipping rates
+- `POST /api/payments/create-intent` - Create Stripe payment intent
+- `POST /api/webhooks/stripe` - Handle Stripe events
+- `POST /api/admin/auth` - Admin login
+- `DELETE /api/admin/auth` - Admin logout
 
-### Shopping Cart
-- Real-time cart management
-- Quantity updates
-- LocalStorage persistence
-- Cart count badge in navbar
+## Environment Variables
 
-### Favorites
-- Instant favorites toggling
-- Persistent favorites list
-- Favorites count badge in navbar
-- Quick product access
+All environment variables are documented in `ENV_TEMPLATE.md`. Key categories:
+- Supabase credentials
+- Stripe API keys
+- Admin password
+- Resend API key
+- Gemini AI key
 
-### Checkout
-- Guest checkout
-- Form validation with Zod
-- Shipping address capture
-- Shipping rate selection
-- Stripe payment integration
-- Order confirmation page
-
-### Admin Dashboard (`/admin`)
-- Password-protected access
-- Product management (CRUD operations)
-- Image uploads to Supabase Storage
-- Order management
-- Shipping rates configuration
-- Real-time analytics
-
-### Email Notifications
-- Customer order confirmations
-- Admin new order alerts
-- Beautiful HTML templates
-- Powered by Resend
-
-## 🧪 Development Scripts
-
-```bash
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Start production server
-npm start
-
-# Run linter
-npm run lint
-
-# Type check
-npm run type-check
-
-# Migrate data from Vercel KV to Supabase (one-time)
-npx tsx scripts/migrate-to-supabase.ts
-```
-
-## 🔐 Security Features
-
-- Row Level Security (RLS) on all Supabase tables
-- Password-protected admin routes with HTTP-only cookies
-- Middleware-based route protection
-- Stripe webhook signature verification
-- Secure payment processing with Stripe
-- Environment variable validation
-
-## 🚀 Deployment
+## Deployment
 
 ### Deploy to Vercel
 
-The easiest way to deploy this project is using [Vercel](https://vercel.com):
+1. Push your code to GitHub
+2. Connect repository to Vercel
+3. Set root directory to: `gemini/tsuyanouchi`
+4. Add all environment variables
+5. Deploy!
 
-1. **Push to GitHub**: Ensure your code is in a GitHub repository
-2. **Import to Vercel**: 
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project"
-   - Import your repository
-3. **Configure Environment Variables**: Add all variables from `ENV_TEMPLATE.md`
-4. **Deploy**: Click "Deploy"
+See `SETUP.md` for detailed deployment instructions.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/jenozu/tsuyanouchi)
+## Testing
 
-### Environment Variables for Production
+### Test Cards (Stripe)
+- Success: `4242 4242 4242 4242`
+- Decline: `4000 0000 0000 0002`
+- 3D Secure: `4000 0025 0000 3155`
 
-Set these in your Vercel project settings (see `ENV_TEMPLATE.md` for complete list):
+Use any future expiry date and any 3-digit CVC.
 
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=your-production-supabase-url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-anon-key
+### Admin Access
+Default admin password is set via `ADMIN_PASSWORD` environment variable.
 
-# Stripe (use live keys for production!)
-STRIPE_SECRET_KEY=sk_live_your-live-secret-key
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your-live-publishable-key
-STRIPE_WEBHOOK_SECRET=whsec_your-production-webhook-secret
+## Development
 
-# Admin
-ADMIN_PASSWORD=your-secure-production-password
-
-# Resend
-RESEND_API_KEY=re_your-key
-ORDER_NOTIFICATION_EMAIL=orders@yourdomain.com
-```
-
-**Important for Production**:
-1. Use **live** Stripe keys (not test keys)
-2. Set up Stripe webhook in Dashboard (not CLI)
-   - Go to Stripe Dashboard → Webhooks
-   - Add endpoint: `https://yourdomain.com/api/webhooks/stripe`
-   - Select events: `payment_intent.succeeded`, `payment_intent.payment_failed`
-3. Use a **strong** admin password
-4. Create a production Supabase project (separate from dev)
-
-## 🎨 Customization
-
-### Colors
-
-The site uses a custom emerald color scheme. To change it, update the Tailwind classes in components:
-
-```tsx
-// Current: bg-emerald-900
-// Change to: bg-your-color-900
-```
-
-### Products
-
-To add or modify products:
-
-1. **Via Admin Dashboard**: Visit `/admin` and manage products through the UI
-2. **Via Supabase**: Edit directly in the Supabase dashboard Table Editor
-
-### Styling
-
-Global styles are in `app/globals.css`. The project uses Tailwind CSS v4 with custom CSS variables for theming.
-
-## 📝 Product Management
-
-### Using Admin Dashboard
-
-1. Navigate to `http://localhost:3000/admin/login`
-2. Enter your admin password (from `.env.local`)
-3. Click "Products" to manage your inventory
-4. Add new products with:
-   - Name and description
-   - Price and cost
-   - Category
-   - Images (uploaded to Supabase Storage)
-   - Sizes (JSON array)
-   - Stock quantity
-
-### Using Supabase Directly
-
-You can also manage products directly in the Supabase dashboard:
-1. Go to Table Editor
-2. Select `products` table
-3. Add/edit/delete rows
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Issue**: "Failed to fetch from Sanity"
-- **Solution**: Check that your `NEXT_PUBLIC_SANITY_PROJECT_ID` is correct
-- The site will fall back to demo products if Sanity is unavailable
-
-**Issue**: "BLOB_READ_WRITE_TOKEN is not set"
-- **Solution**: Run `vercel env pull .env.local` to get storage credentials
-- See **[START_HERE.md](START_HERE.md)** for complete Blob setup guide
-
-**Issue**: Image upload fails in `/admin`
-- **Solution**: 
-  1. Make sure Vercel Blob is created and connected
-  2. Run `vercel env pull .env.local`
-  3. Restart your dev server
-  4. See **[CHECKLIST.md](CHECKLIST.md)** for step-by-step troubleshooting
-
-**Issue**: Images not loading
-- **Solution**: Ensure images are in the `public/` directory
-- For Sanity images, check that the image URLs are accessible
-- For uploaded images, verify they're on Vercel Blob (URL contains `.blob.vercel-storage.com`)
-
-**Issue**: TypeScript errors
-- **Solution**: Run `pnpm install` to ensure all dependencies are installed
-- Check `tsconfig.json` for correct configuration
-
-## 📚 Learn More
-
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Sanity Documentation](https://www.sanity.io/docs)
-- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
-- [shadcn/ui Documentation](https://ui.shadcn.com/)
-- [Vercel Blob Documentation](https://vercel.com/docs/storage/vercel-blob)
-- [Vercel KV Documentation](https://vercel.com/docs/storage/vercel-kv)
-
-## 📖 Setup Guides
-
-### Vercel Blob Storage Setup
-
-This project uses Vercel Blob for persistent image storage. To set it up:
-
-1. **Quick Start**: See **[START_HERE.md](START_HERE.md)** for a 10-minute setup guide
-2. **Visual Guide**: See **[DASHBOARD_GUIDE.txt](DASHBOARD_GUIDE.txt)** for dashboard walkthrough
-3. **Checklist**: See **[CHECKLIST.md](CHECKLIST.md)** for step-by-step setup
-4. **Comprehensive**: See **[VERCEL_BLOB_SETUP.md](VERCEL_BLOB_SETUP.md)** for detailed docs
-5. **Summary**: See **[SETUP_SUMMARY.md](SETUP_SUMMARY.md)** for what changed
-
-**Test Connection**:
+### Scripts
 ```bash
-node scripts/test-blob.js
+npm run dev       # Start development server
+npm run build     # Build for production
+npm run start     # Start production server
+npm run lint      # Run ESLint
 ```
 
-**Key Features**:
-- ✅ Persistent image storage (survives redeployments)
-- ✅ Global CDN (fast image delivery worldwide)
-- ✅ Automatic optimization and caching
-- ✅ 5 GB free storage (≈10,000 images)
-- ✅ Simple API (`put()`, `del()`, `list()`)
+### Code Style
+- Use TypeScript for type safety
+- Follow existing component patterns
+- Maintain the luxury design aesthetic
+- Keep UI components reusable
 
-## 📄 License
+## Features Roadmap
 
-This project is for educational and portfolio purposes.
+- [ ] User accounts and authentication
+- [ ] Order history for customers
+- [ ] Product reviews and ratings
+- [ ] Wishlist sharing
+- [ ] Gift cards
+- [ ] Multi-currency support
+- [ ] Advanced inventory management
+- [ ] Email marketing integration
+- [ ] Product recommendations
+- [ ] Live chat support
 
-## 👤 Author
+## License
 
-Created with care for the art of ukiyo-e and modern design.
+All rights reserved © 2026 Tsuyanouchi
+
+## Support
+
+For setup assistance or issues:
+1. Check `SETUP.md` for detailed instructions
+2. Review `SUPABASE_SCHEMA.sql` for database setup
+3. Consult service documentation:
+   - [Next.js Docs](https://nextjs.org/docs)
+   - [Supabase Docs](https://supabase.com/docs)
+   - [Stripe Docs](https://stripe.com/docs)
+   - [Resend Docs](https://resend.com/docs)
 
 ---
 
-**Note**: This is a demonstration project. Cart and checkout functionality are currently in demo mode. For a full e-commerce solution, consider integrating Stripe, PayPal, or similar payment processors.
-
+Built with care and attention to detail, embodying the Japanese principle of *mono no aware* — the beauty of impermanence and mindful craftsmanship.
