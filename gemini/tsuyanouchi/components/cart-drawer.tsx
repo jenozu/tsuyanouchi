@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import Link from 'next/link';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 
 interface CartDrawerProps {
   isOpen: boolean;
