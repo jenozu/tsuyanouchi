@@ -9,31 +9,25 @@ interface ShopClientProps {
   products: Product[];
 }
 
-type SortOption = 'best-seller' | 'price-low-high' | 'price-high-low' | 'newest';
+type SortOption = 'best-seller' | 'price-low-high' | 'price-high-low' | 'newest' | 'alpha-a-z' | 'alpha-z-a';
 
 export function ShopClient({ products }: ShopClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
-
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(new Set(products.map(p => p.category.toUpperCase())));
-    return ['ALL', ...uniqueCategories.sort()];
-  }, [products]);
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'newest', label: 'NEW ARRIVALS' },
     { value: 'best-seller', label: 'BEST SELLERS' },
     { value: 'price-low-high', label: 'PRICE: LOW TO HIGH' },
     { value: 'price-high-low', label: 'PRICE: HIGH TO LOW' },
+    { value: 'alpha-a-z', label: 'ALPHABETICALLY: A-Z' },
+    { value: 'alpha-z-a', label: 'ALPHABETICALLY: Z-A' },
   ];
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = products.filter(product => {
-      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = selectedCategory === 'ALL' || product.category.toUpperCase() === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+    const filtered = products.filter(product =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -45,13 +39,17 @@ export function ShopClient({ products }: ShopClientProps) {
           return (b.created_at || '').localeCompare(a.created_at || '');
         case 'best-seller':
           return (b.created_at || '').localeCompare(a.created_at || '');
+        case 'alpha-a-z':
+          return a.name.localeCompare(b.name);
+        case 'alpha-z-a':
+          return b.name.localeCompare(a.name);
         default:
           return 0;
       }
     });
 
     return sorted;
-  }, [products, searchTerm, selectedCategory, sortBy]);
+  }, [products, searchTerm, sortBy]);
 
   return (
     <div className="min-h-screen bg-[#F9F8F4]">
@@ -63,35 +61,17 @@ export function ShopClient({ products }: ShopClientProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters & Sort */}
+        {/* Sort & Search */}
         <div className="mb-8">
-          {/* Category Filters */}
-          <div className="flex flex-wrap gap-2 mb-6">
-            {categories.map(category => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 text-xs uppercase tracking-wider font-medium transition-all ${
-                  selectedCategory === category
-                    ? 'bg-[#2D2A26] text-white'
-                    : 'bg-transparent text-[#786B59] hover:text-[#2D2A26]'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort By and Search */}
           <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium">SORT BY:</span>
-              <div className="flex flex-wrap gap-2">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">SORT BY:</span>
+              <div className="flex flex-wrap gap-1">
                 {sortOptions.map(option => (
                   <button
                     key={option.value}
                     onClick={() => setSortBy(option.value)}
-                    className={`px-6 py-2 text-xs uppercase tracking-wider font-medium transition-all ${
+                    className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium transition-all whitespace-nowrap ${
                       sortBy === option.value
                         ? 'bg-[#2D2A26] text-white'
                         : 'bg-transparent text-[#786B59] hover:text-[#2D2A26]'
