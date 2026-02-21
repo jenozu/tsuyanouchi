@@ -96,8 +96,8 @@ function normalizeImageUrl(imageUrlOrFilename: string): string {
  * Validates required fields in a CSV row
  */
 function validateRow(row: any, rowIndex: number): { valid: boolean; error?: string } {
-  // Check basic required fields
-  const basicRequired = ['name', 'category', 'stock', 'imageUrl'];
+  // Check basic required fields (category is optional, defaults to "Art Prints")
+  const basicRequired = ['name', 'stock', 'imageUrl'];
   
   for (const field of basicRequired) {
     if (!row[field] || String(row[field]).trim() === '') {
@@ -206,7 +206,7 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
 
   return {
     name: String(row.name).trim(),
-    category: String(row.category).trim(),
+    category: row.category && String(row.category).trim() !== '' ? String(row.category).trim() : 'Art Prints',
     description: row.description ? String(row.description).trim() : '',
     price: avgPrice,
     cost: avgCost,
