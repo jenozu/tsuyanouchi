@@ -34,6 +34,7 @@ export async function POST(request: NextRequest) {
       price: parseFloat(body.price),
       cost: body.cost ? parseFloat(body.cost) : undefined,
       category: body.category,
+      product_type: body.product_type || undefined,
       image_url: body.image_url || body.imageUrl || '',
       stock: parseInt(body.stock) || 0,
       sizes: body.sizes || [],

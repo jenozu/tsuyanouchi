@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
 
 export async function POST(request: Request) {
   try {
@@ -16,10 +15,9 @@ export async function POST(request: Request) {
     
     if (password === adminPassword) {
       const response = NextResponse.json({ success: true })
-      
-      // Set HTTP-only cookie
-      const cookieStore = await cookies()
-      cookieStore.set('admin_session', 'authenticated', {
+
+      // Set cookie on the response we return so it is sent to the browser (works in dev and production)
+      response.cookies.set('admin_session', 'authenticated', {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',
@@ -46,10 +44,9 @@ export async function POST(request: Request) {
 export async function DELETE() {
   try {
     const response = NextResponse.json({ success: true })
-    
-    // Clear the admin session cookie
-    const cookieStore = await cookies()
-    cookieStore.delete('admin_session')
+
+    // Clear the admin session cookie on the response we return
+    response.cookies.delete('admin_session')
     
     return response
   } catch (error) {

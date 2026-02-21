@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
 import { generateProductDescription } from '@/services/gemini';
 import { uploadProductImage } from '@/lib/supabase-helpers';
+import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 
 type AdminTab = 'DASHBOARD' | 'PRODUCTS' | 'ORDERS' | 'SHIPPING' | 'SETTINGS';
 type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';
@@ -44,16 +45,15 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [currentId, setCurrentId] = useState<string>('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
+  const [productType, setProductType] = useState<string>('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState<string>('');
-  const [cost, setCost] = useState<string>('');
-  const [stock, setStock] = useState<string>('');
   const [imageUrl, setImageUrl] = useState('');
   const [sizes, setSizes] = useState<ProductSize[]>([]);
   
-  // Size Input State
-  const [sizeLabel, setSizeLabel] = useState('');
-  const [sizePrice, setSizePrice] = useState('');
+  // Variation Input State
+  const [variationLabel, setVariationLabel] = useState('');
+  const [variationPrice, setVariationPrice] = useState('');
+  const [variationCost, setVariationCost] = useState('');
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,8 +61,10 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   // Drag State
   const [draggedSizeIndex, setDraggedSizeIndex] = useState<number | null>(null);
 
-  // CSV Upload Ref
+  // CSV Upload Ref and State
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
+  const [useMultipliers, setUseMultipliers] = useState(false);
 
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
@@ -118,12 +120,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCurrentId('');
     setName('');
     setCategory('');
+    setProductType('');
     setDescription('');
-    setPrice('');
-    setCost('');
-    setStock('');
     setImageUrl('');
-    setSizes([]);
+    // Initialize with preset sizes
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
     setIsEditing(false);
   };
 
@@ -131,10 +132,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCurrentId(product.id);
     setName(product.name);
     setCategory(product.category);
+    setProductType(product.product_type || '');
     setDescription(product.description);
-    setPrice(product.price.toString());
-    setCost(product.cost ? product.cost.toString() : '');
-    setStock(product.stock.toString());
     setImageUrl(product.image_url);
     setSizes(product.sizes || []);
     setIsEditing(true);
@@ -161,19 +160,24 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleSave = async () => {
-    if (!name || !price || !category) {
-      alert('Please fill in required fields.');
+    if (!name || !category || sizes.length === 0) {
+      alert('Please fill in required fields and add at least one variation.');
       return;
     }
+
+    // Calculate totals from variations
+    const avgPrice = sizes.reduce((sum, size) => sum + size.price, 0) / sizes.length;
+    const avgCost = sizes.reduce((sum, size) => sum + size.cost, 0) / sizes.length;
 
     const productData = {
       name,
       description,
-      price: parseFloat(price),
-      cost: parseFloat(cost) || 0,
+      price: avgPrice, // Use average price for display
+      cost: avgCost, // Use average cost
       category,
+      product_type: productType || null,
       image_url: imageUrl || 'https://picsum.photos/800/800',
-      stock: parseInt(stock) || 0,
+      stock: 0, // Default stock to 0 since variations don't track stock
       sizes: sizes
     };
 
@@ -199,17 +203,29 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }
   };
 
-  // --- Size Management ---
-  const addSize = () => {
-    if (sizeLabel && sizePrice) {
-      setSizes([...sizes, { label: sizeLabel, price: parseFloat(sizePrice) }]);
-      setSizeLabel('');
-      setSizePrice('');
+  // --- Variation Management ---
+  const addVariation = () => {
+    if (variationLabel && variationPrice && variationCost) {
+      setSizes([...sizes, { 
+        label: variationLabel, 
+        price: parseFloat(variationPrice),
+        cost: parseFloat(variationCost)
+      }]);
+      setVariationLabel('');
+      setVariationPrice('');
+      setVariationCost('');
     }
   };
 
-  const removeSize = (index: number) => {
+  const removeVariation = (index: number) => {
     setSizes(sizes.filter((_, i) => i !== index));
+  };
+
+  const updateVariation = (index: number, field: 'price' | 'cost', value: string) => {
+    const newSizes = [...sizes];
+    const numValue = parseFloat(value) || 0;
+    newSizes[index] = { ...newSizes[index], [field]: numValue };
+    setSizes(newSizes);
   };
 
   const handleDragStart = (index: number) => {
@@ -274,6 +290,58 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const desc = await generateProductDescription(name, category, keywords);
     setDescription(desc);
     setIsGenerating(false);
+  };
+
+  // --- CSV Import ---
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset file input
+    e.target.value = '';
+
+    // Validate file
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please upload a valid CSV file (.csv extension)');
+      return;
+    }
+
+    setIsImporting(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('useMultipliers', useMultipliers.toString());
+
+      const response = await fetch('/api/products/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(
+          `✅ ${result.message}\n\n` +
+          `Imported: ${result.imported}\n` +
+          `Failed: ${result.failed || 0}\n` +
+          `Skipped: ${result.skipped || 0}` +
+          (result.errors?.length > 0 ? `\n\nWarnings:\n${result.errors.slice(0, 5).join('\n')}` : '')
+        );
+        refreshData();
+      } else {
+        alert(
+          `❌ Import Failed\n\n` +
+          `${result.error || 'Unknown error'}\n\n` +
+          (result.details ? `Details:\n${Array.isArray(result.details) ? result.details.slice(0, 5).join('\n') : result.details}` : '')
+        );
+      }
+    } catch (error) {
+      console.error('CSV import error:', error);
+      alert('Failed to import CSV. Please check your file format and try again.');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   // --- Logout ---
@@ -397,7 +465,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             className={`w-full flex items-center px-6 py-3 transition-colors ${activeTab === 'PRODUCTS' ? 'bg-[#2D2A26] text-white border-l-4 border-white' : 'hover:bg-[#2D2A26]/50 text-[#786B59]'}`}
           >
             <Package className="mr-3" size={20} />
-            Products
+            Collection
           </button>
           <button 
             onClick={() => setActiveTab('ORDERS')}
@@ -662,26 +730,47 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
           {activeTab === 'PRODUCTS' && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-serif text-[#2D2A26]">Product Management</h2>
-                <Button onClick={() => { setIsEditing(true); resetForm(); }}>
-                  <Plus size={20} className="mr-2" />
-                  Add Product
-                </Button>
+                <h2 className="text-3xl font-serif text-[#2D2A26]">Collection Archive</h2>
+                <div className="flex gap-3">
+                  <input 
+                    type="file" 
+                    accept=".csv" 
+                    ref={fileInputRef} 
+                    onChange={handleCSVUpload} 
+                    className="hidden" 
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => fileInputRef.current?.click()} 
+                    disabled={isImporting}
+                    className="text-[10px] uppercase font-bold tracking-widest"
+                  >
+                    <FileSpreadsheet size={14} className="mr-2" />
+                    {isImporting ? 'Importing...' : 'Import CSV'}
+                  </Button>
+                  <Button 
+                    onClick={() => { setIsEditing(true); resetForm(); }} 
+                    className="text-[10px] uppercase font-bold tracking-widest"
+                  >
+                    <Plus size={16} className="mr-2" />
+                    New Entry
+                  </Button>
+                </div>
               </div>
 
               {isEditing ? (
-                <div className="bg-white p-8 rounded-none shadow-lg border border-[#E5E0D8] max-w-4xl mx-auto">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-serif text-[#2D2A26]">{currentId ? 'Edit Product' : 'New Product'}</h3>
-                    <button onClick={() => setIsEditing(false)} className="text-[#786B59] hover:text-[#2D2A26]">
+                <div className="bg-white p-10 border border-[#E5E0D8] shadow-2xl max-w-5xl mx-auto space-y-8">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-2xl font-serif text-[#2D2A26]">{currentId ? 'Modify Record' : 'Create Record'}</h3>
+                    <button onClick={() => setIsEditing(false)} className="text-[#CDC6BC] hover:text-[#2D2A26]">
                       <X size={24} />
                     </button>
                   </div>
 
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Name</label>
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Product Name</label>
                         <input 
                           value={name} 
                           onChange={(e) => setName(e.target.value)}
@@ -690,7 +779,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Category</label>
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Category</label>
                         <input 
                           value={category} 
                           onChange={(e) => setCategory(e.target.value)}
@@ -698,18 +787,32 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           placeholder="Home Decor"
                         />
                       </div>
+
+                      <div className="space-y-2 md:col-span-2">
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Product Type</label>
+                        <select
+                          value={productType}
+                          onChange={(e) => setProductType(e.target.value)}
+                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
+                        >
+                          <option value="">-- Select Type --</option>
+                          <option value="Single Print">Single Print</option>
+                          <option value="2-piece Set">2-piece Set</option>
+                          <option value="3-piece Set">3-piece Set</option>
+                        </select>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-sm font-medium text-[#4A4036]">Description</label>
+                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Description</label>
                         <button 
                           onClick={handleGenerateDescription}
                           disabled={isGenerating}
-                          className="flex items-center text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded hover:bg-purple-100 transition-colors disabled:opacity-50"
+                          className="text-[10px] uppercase tracking-widest text-[#8C3F3F] flex items-center gap-1 hover:opacity-80 disabled:opacity-30"
                         >
-                          <Wand2 size={12} className="mr-1" /> 
-                          {isGenerating ? 'Generating...' : 'AI Generate'}
+                          <Wand2 size={12} /> 
+                          {isGenerating ? 'Drafting...' : 'AI Assistant'}
                         </button>
                       </div>
                       <textarea 
@@ -720,92 +823,62 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Price ($)</label>
-                        <input 
-                          type="number"
-                          value={price} 
-                          onChange={(e) => setPrice(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Retail Price"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Cost ($)</label>
-                        <input 
-                          type="number"
-                          value={cost} 
-                          onChange={(e) => setCost(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Cost of Goods"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Stock</label>
-                        <input 
-                          type="number"
-                          value={stock} 
-                          onChange={(e) => setStock(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Qty"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Size Variations */}
-                    <div className="p-4 bg-[#F2EFE9] border border-[#E5E0D8] rounded-none">
-                      <h4 className="flex items-center gap-2 text-sm font-medium text-[#2D2A26] mb-4">
-                        Sizes & Pricing (Optional)
+                    {/* Variations Section */}
+                    <div className="bg-[#F9F8F4] p-6 border border-[#E5E0D8] space-y-6">
+                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-[#2D2A26]">
+                        Variations
                       </h4>
                       
-                      <div className="flex gap-2 mb-4">
-                        <input 
-                          value={sizeLabel}
-                          onChange={(e) => setSizeLabel(e.target.value)}
-                          className="flex-1 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                          placeholder="Label (e.g. 8x10, A3)"
-                        />
-                        <input 
-                          type="number"
-                          value={sizePrice}
-                          onChange={(e) => setSizePrice(e.target.value)}
-                          className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                          placeholder="Price ($)"
-                        />
-                        <button 
-                          onClick={addSize}
-                          className="bg-[#E5E0D8] hover:bg-[#D4CEC5] text-[#2D2A26] px-4 py-2 text-sm transition-colors"
-                        >
-                          Add
-                        </button>
-                      </div>
-
+                      {/* Variations List */}
                       <div className="space-y-2">
-                        {sizes.map((size, index) => (
-                          <div 
-                            key={index} 
-                            className={`flex items-center justify-between bg-white p-2 border ${draggedSizeIndex === index ? 'border-[#2D2A26] shadow-md opacity-50' : 'border-[#E5E0D8]'}`}
-                            draggable
-                            onDragStart={() => handleDragStart(index)}
-                            onDragOver={(e) => handleDragOver(e, index)}
-                            onDragEnd={handleDragEnd}
-                          >
-                            <div className="flex items-center gap-3">
-                              <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
-                              <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm text-[#4A4036]">${size.price}</span>
-                              <button onClick={() => removeSize(index)} className="text-[#8C3F3F] hover:text-red-700">
-                                <X size={14} />
+                        {sizes.length === 0 ? (
+                          <p className="text-xs text-[#786B59] italic text-center py-4">
+                            No variations added yet.
+                          </p>
+                        ) : (
+                          sizes.map((variation, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center gap-4 bg-white p-3 border border-[#E5E0D8]"
+                            >
+                              <span className="flex-1 text-xs font-bold">{variation.label}</span>
+                              <input 
+                                type="number"
+                                value={variation.price || ''}
+                                onChange={(e) => updateVariation(index, 'price', e.target.value)}
+                                className="w-24 p-2 border border-[#E5E0D8] text-xs text-right"
+                                placeholder="Price"
+                                step="0.01"
+                              />
+                              <input 
+                                type="number"
+                                value={variation.cost || ''}
+                                onChange={(e) => updateVariation(index, 'cost', e.target.value)}
+                                className="w-24 p-2 border border-[#E5E0D8] text-xs text-right"
+                                placeholder="Cost"
+                                step="0.01"
+                              />
+                              <button 
+                                onClick={() => removeVariation(index)} 
+                                className="text-[#CDC6BC] hover:text-[#8C3F3F] transition-colors"
+                              >
+                                <Trash2 size={14} />
                               </button>
                             </div>
-                          </div>
-                        ))}
-                        {sizes.length === 0 && <p className="text-xs text-[#786B59] italic text-center">No sizes added.</p>}
+                          ))
+                        )}
                       </div>
-                      <p className="text-[10px] text-[#786B59] mt-2">Drag to reorder sizes.</p>
+
+                      {/* Add Variation Form */}
+                      <div className="border-t border-[#E5E0D8] pt-4">
+                        <Button 
+                          variant="outline" 
+                          className="w-full text-[9px] py-2 border-dashed" 
+                          onClick={() => setSizes([...sizes, { label: 'Custom', price: 0, cost: 0 }])}
+                        >
+                          Add Custom Variation
+                        </Button>
+                      </div>
                     </div>
 
                     {/* Image Section */}
@@ -871,47 +944,37 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   </div>
                 </div>
               ) : (
-                <div className="bg-white rounded-none shadow-sm border border-[#E5E0D8] overflow-hidden">
+                <div className="bg-white border border-[#E5E0D8] overflow-hidden">
                   <table className="w-full text-left">
-                    <thead className="bg-[#F2EFE9] text-[#786B59] text-xs uppercase tracking-wider">
+                    <thead className="bg-[#F2EFE9] text-[#786B59] text-[10px] uppercase tracking-widest font-bold">
                       <tr>
-                        <th className="p-4 font-medium">Product</th>
-                        <th className="p-4 font-medium">Category</th>
-                        <th className="p-4 font-medium text-right">Cost</th>
-                        <th className="p-4 font-medium text-right">Price</th>
-                        <th className="p-4 font-medium text-right">Stock</th>
-                        <th className="p-4 font-medium text-right">Actions</th>
+                        <th className="p-4">Item</th>
+                        <th className="p-4">Category</th>
+                        <th className="p-4 text-right">MSRP</th>
+                        <th className="p-4 text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E0D8]">
                       {products.map((product) => (
                         <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
-                              <span className="font-medium text-[#2D2A26]">{product.name}</span>
-                            </div>
+                          <td className="p-4 font-medium text-[#2D2A26] flex items-center gap-4">
+                            <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover border" />
+                            {product.name}
                           </td>
-                          <td className="p-4 text-[#4A4036] text-sm">{product.category}</td>
-                          <td className="p-4 text-right text-[#786B59] text-sm">${product.cost || 0}</td>
-                          <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price}</td>
-                          <td className="p-4 text-right">
-                            <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
-                              {product.stock}
-                            </span>
-                          </td>
+                          <td className="p-4 text-[#786B59] text-sm">{product.category}</td>
+                          <td className="p-4 text-right font-medium">${product.price}</td>
                           <td className="p-4 text-right">
                             <div className="flex justify-end gap-2">
                               <button 
                                 onClick={() => handleEdit(product)}
-                                className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
+                                className="p-2 text-[#CDC6BC] hover:text-[#2D2A26]"
                                 title="Edit"
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button 
                                 onClick={() => handleDelete(product.id)}
-                                className="p-2 text-[#786B59] hover:bg-red-50 hover:text-red-600 transition-colors"
+                                className="p-2 text-[#CDC6BC] hover:text-[#8C3F3F]"
                                 title="Delete"
                               >
                                 <Trash2 size={16} />

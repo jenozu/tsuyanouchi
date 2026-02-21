@@ -1,10 +1,11 @@
-import { supabase } from './supabase-client'
+import { supabase, hasSupabaseConfig } from './supabase-client'
 
 // ==================== TYPES ====================
 
 export interface ProductSize {
   label: string
   price: number
+  cost: number
 }
 
 export interface Product {
@@ -14,6 +15,7 @@ export interface Product {
   price: number
   cost?: number
   category: string
+  product_type?: string // "Single Print", "2-piece Set", "3-piece Set"
   image_url: string
   stock: number
   sizes?: ProductSize[]
@@ -70,6 +72,10 @@ export interface ShippingRate {
 // ==================== PRODUCTS ====================
 
 export async function getProducts(): Promise<Product[]> {
+  if (!hasSupabaseConfig()) {
+    console.warn('Supabase env vars missing; returning empty product list.')
+    return []
+  }
   try {
     const { data, error } = await supabase
       .from('products')
@@ -85,6 +91,7 @@ export async function getProducts(): Promise<Product[]> {
 }
 
 export async function getProduct(id: string): Promise<Product | null> {
+  if (!hasSupabaseConfig()) return null
   try {
     const { data, error } = await supabase
       .from('products')

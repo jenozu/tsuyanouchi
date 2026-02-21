@@ -2,6 +2,14 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 let cached: SupabaseClient | null = null
 
+/** Use this to avoid throwing when env vars are missing (e.g. return empty data instead). */
+export function hasSupabaseConfig(): boolean {
+  return Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
+}
+
 function getSupabase(): SupabaseClient {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
