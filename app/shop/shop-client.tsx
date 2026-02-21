@@ -91,10 +91,10 @@ export function ShopClient({ products }: ShopClientProps) {
                   <button
                     key={option.value}
                     onClick={() => setSortBy(option.value)}
-                    className={`px-4 py-1.5 text-xs uppercase tracking-wider transition-all ${
+                    className={`px-6 py-2 text-xs uppercase tracking-wider font-medium transition-all ${
                       sortBy === option.value
-                        ? 'text-[#2D2A26] font-medium underline'
-                        : 'text-[#786B59] hover:text-[#2D2A26]'
+                        ? 'bg-[#2D2A26] text-white'
+                        : 'bg-transparent text-[#786B59] hover:text-[#2D2A26]'
                     }`}
                   >
                     {option.label}
