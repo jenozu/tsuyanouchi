@@ -61,8 +61,9 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   // Drag State
   const [draggedSizeIndex, setDraggedSizeIndex] = useState<number | null>(null);
 
-  // CSV Upload Ref
+  // CSV Upload Ref and State
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isImporting, setIsImporting] = useState(false);
 
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
@@ -124,7 +125,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setStock('');
     setImageUrl('');
     setSizes([]);
-    setIsEditing(false);
   };
 
   const handleEdit = (product: Product) => {
@@ -190,6 +190,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       if (response.ok) {
         refreshData();
         resetForm();
+        setIsEditing(false);
       } else {
         alert('Failed to save product');
       }
@@ -274,6 +275,54 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const desc = await generateProductDescription(name, category, keywords);
     setDescription(desc);
     setIsGenerating(false);
+  };
+
+  // --- CSV Import ---
+  const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      alert('Please upload a valid CSV file (.csv extension)');
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('useMultipliers', 'false');
+
+      const response = await fetch('/api/products/import', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        alert(
+          `✅ ${result.message}\n\n` +
+          `Imported: ${result.imported}\n` +
+          `Failed: ${result.failed || 0}\n` +
+          `Skipped: ${result.skipped || 0}` +
+          (result.errors?.length > 0 ? `\n\nWarnings:\n${result.errors.slice(0, 5).join('\n')}` : '')
+        );
+        refreshData();
+      } else {
+        alert(
+          `❌ Import Failed\n\n` +
+          `${result.error || 'Unknown error'}\n\n` +
+          (result.details ? `Details:\n${Array.isArray(result.details) ? result.details.slice(0, 5).join('\n') : result.details}` : '')
+        );
+      }
+    } catch (error) {
+      console.error('CSV import error:', error);
+      alert('Failed to import CSV. Please check your file format and try again.');
+    } finally {
+      setIsImporting(false);
+    }
   };
 
   // --- Logout ---
@@ -663,10 +712,27 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center">
                 <h2 className="text-3xl font-serif text-[#2D2A26]">Product Management</h2>
-                <Button onClick={() => { setIsEditing(true); resetForm(); }}>
-                  <Plus size={20} className="mr-2" />
-                  Add Product
-                </Button>
+                <div className="flex gap-3">
+                  <input
+                    type="file"
+                    accept=".csv"
+                    ref={fileInputRef}
+                    onChange={handleCSVUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isImporting}
+                  >
+                    <FileSpreadsheet size={16} className="mr-2" />
+                    {isImporting ? 'Importing...' : 'Import CSV'}
+                  </Button>
+                  <Button onClick={() => { resetForm(); setIsEditing(true); }}>
+                    <Plus size={20} className="mr-2" />
+                    Add Product
+                  </Button>
+                </div>
               </div>
 
               {isEditing ? (
@@ -861,7 +927,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     </div>
 
                     <div className="flex justify-end pt-6 gap-4">
-                      <Button variant="secondary" onClick={() => { setIsEditing(false); resetForm(); }}>
+                      <Button variant="secondary" onClick={() => { resetForm(); setIsEditing(false); }}>
                         Cancel
                       </Button>
                       <Button onClick={handleSave}>
