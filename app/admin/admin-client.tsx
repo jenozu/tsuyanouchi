@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
+import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { generateProductDescription } from '@/services/gemini';
 import { uploadProductImage } from '@/lib/supabase-helpers';
 
@@ -45,15 +46,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [price, setPrice] = useState<string>('');
-  const [cost, setCost] = useState<string>('');
-  const [stock, setStock] = useState<string>('');
   const [imageUrl, setImageUrl] = useState('');
   const [sizes, setSizes] = useState<ProductSize[]>([]);
-  
-  // Size Input State
-  const [sizeLabel, setSizeLabel] = useState('');
-  const [sizePrice, setSizePrice] = useState('');
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -120,11 +114,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setName('');
     setCategory('');
     setDescription('');
-    setPrice('');
-    setCost('');
-    setStock('');
     setImageUrl('');
-    setSizes([]);
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
   };
 
   const handleEdit = (product: Product) => {
@@ -132,11 +123,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setName(product.name);
     setCategory(product.category);
     setDescription(product.description);
-    setPrice(product.price.toString());
-    setCost(product.cost ? product.cost.toString() : '');
-    setStock(product.stock.toString());
     setImageUrl(product.image_url);
-    setSizes(product.sizes || []);
+    const existingSizes = product.sizes || [];
+    const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({
+      label,
+      price: sizeMap.get(label) ?? 0
+    })));
     setIsEditing(true);
     setActiveTab('PRODUCTS');
   };
@@ -161,19 +154,25 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleSave = async () => {
-    if (!name || !price || !category) {
-      alert('Please fill in required fields.');
+    if (!name || !category) {
+      alert('Please fill in Name and Category.');
+      return;
+    }
+    const sizesWithPrice = sizes.filter(s => s.price > 0);
+    if (sizesWithPrice.length === 0) {
+      alert('Please add at least one size with a price.');
       return;
     }
 
+    const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
     const productData = {
       name,
       description,
-      price: parseFloat(price),
-      cost: parseFloat(cost) || 0,
+      price: avgPrice,
+      cost: 0,
       category,
       image_url: imageUrl || 'https://picsum.photos/800/800',
-      stock: parseInt(stock) || 0,
+      stock: 0,
       sizes: sizes
     };
 
@@ -201,16 +200,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   // --- Size Management ---
-  const addSize = () => {
-    if (sizeLabel && sizePrice) {
-      setSizes([...sizes, { label: sizeLabel, price: parseFloat(sizePrice) }]);
-      setSizeLabel('');
-      setSizePrice('');
-    }
-  };
-
-  const removeSize = (index: number) => {
-    setSizes(sizes.filter((_, i) => i !== index));
+  const updateSizePrice = (index: number, value: string) => {
+    const num = parseFloat(value) || 0;
+    const newSizes = [...sizes];
+    newSizes[index] = { ...newSizes[index], price: num };
+    setSizes(newSizes);
   };
 
   const handleDragStart = (index: number) => {
@@ -786,72 +780,18 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Price ($)</label>
-                        <input 
-                          type="number"
-                          value={price} 
-                          onChange={(e) => setPrice(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Retail Price"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Cost ($)</label>
-                        <input 
-                          type="number"
-                          value={cost} 
-                          onChange={(e) => setCost(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Cost of Goods"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#4A4036]">Stock</label>
-                        <input 
-                          type="number"
-                          value={stock} 
-                          onChange={(e) => setStock(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                          placeholder="Qty"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Size Variations */}
+                    {/* Sizes & Pricing */}
                     <div className="p-4 bg-[#F2EFE9] border border-[#E5E0D8] rounded-none">
                       <h4 className="flex items-center gap-2 text-sm font-medium text-[#2D2A26] mb-4">
-                        Sizes & Pricing (Optional)
+                        Sizes & Pricing
                       </h4>
-                      
-                      <div className="flex gap-2 mb-4">
-                        <input 
-                          value={sizeLabel}
-                          onChange={(e) => setSizeLabel(e.target.value)}
-                          className="flex-1 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                          placeholder="Label (e.g. 8x10, A3)"
-                        />
-                        <input 
-                          type="number"
-                          value={sizePrice}
-                          onChange={(e) => setSizePrice(e.target.value)}
-                          className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                          placeholder="Price ($)"
-                        />
-                        <button 
-                          onClick={addSize}
-                          className="bg-[#E5E0D8] hover:bg-[#D4CEC5] text-[#2D2A26] px-4 py-2 text-sm transition-colors"
-                        >
-                          Add
-                        </button>
-                      </div>
+                      <p className="text-xs text-[#786B59] mb-4">Add the price for each size. At least one size must have a price.</p>
 
                       <div className="space-y-2">
                         {sizes.map((size, index) => (
                           <div 
                             key={index} 
-                            className={`flex items-center justify-between bg-white p-2 border ${draggedSizeIndex === index ? 'border-[#2D2A26] shadow-md opacity-50' : 'border-[#E5E0D8]'}`}
+                            className={`flex items-center justify-between bg-white p-3 border ${draggedSizeIndex === index ? 'border-[#2D2A26] shadow-md opacity-50' : 'border-[#E5E0D8]'}`}
                             draggable
                             onDragStart={() => handleDragStart(index)}
                             onDragOver={(e) => handleDragOver(e, index)}
@@ -861,15 +801,20 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                               <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
                               <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
                             </div>
-                            <div className="flex items-center gap-4">
-                              <span className="text-sm text-[#4A4036]">${size.price}</span>
-                              <button onClick={() => removeSize(index)} className="text-[#8C3F3F] hover:text-red-700">
-                                <X size={14} />
-                              </button>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[#786B59]">$</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={size.price || ''}
+                                onChange={(e) => updateSizePrice(index, e.target.value)}
+                                className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                placeholder="0"
+                              />
                             </div>
                           </div>
                         ))}
-                        {sizes.length === 0 && <p className="text-xs text-[#786B59] italic text-center">No sizes added.</p>}
                       </div>
                       <p className="text-[10px] text-[#786B59] mt-2">Drag to reorder sizes.</p>
                     </div>
