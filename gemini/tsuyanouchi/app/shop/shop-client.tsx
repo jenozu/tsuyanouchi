@@ -11,9 +11,18 @@ interface ShopClientProps {
 
 type SortOption = 'best-seller' | 'price-low-high' | 'price-high-low' | 'newest' | 'alpha-a-z' | 'alpha-z-a';
 
+type PieceFilter = 'all' | '1-piece' | '2-piece' | '3-piece';
+
 export function ShopClient({ products }: ShopClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [pieceFilter, setPieceFilter] = useState<PieceFilter>('all');
+
+  const pieceOptions: { value: PieceFilter; label: string }[] = [
+    { value: '1-piece', label: '1-Piece' },
+    { value: '2-piece', label: '2-Piece Set' },
+    { value: '3-piece', label: '3-Piece Set' },
+  ];
 
   const sortOptions: { value: SortOption; label: string }[] = [
     { value: 'newest', label: 'NEW ARRIVALS' },
@@ -25,9 +34,16 @@ export function ShopClient({ products }: ShopClientProps) {
   ];
 
   const filteredAndSortedProducts = useMemo(() => {
-    const filtered = products.filter(product =>
-      product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filtered = products.filter(product => {
+      const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const nameLower = product.name.toLowerCase();
+      const matchesPiece =
+        pieceFilter === 'all' ||
+        (pieceFilter === '1-piece' && (nameLower.includes('1-piece') || nameLower.includes('1 piece'))) ||
+        (pieceFilter === '2-piece' && (nameLower.includes('2-piece') || nameLower.includes('2 piece'))) ||
+        (pieceFilter === '3-piece' && (nameLower.includes('3-piece') || nameLower.includes('3 piece')));
+      return matchesSearch && matchesPiece;
+    });
 
     const sorted = [...filtered].sort((a, b) => {
       switch (sortBy) {
@@ -49,7 +65,7 @@ export function ShopClient({ products }: ShopClientProps) {
     });
 
     return sorted;
-  }, [products, searchTerm, sortBy]);
+  }, [products, searchTerm, sortBy, pieceFilter]);
 
   return (
     <div className="min-h-screen bg-[#F9F8F4]">
@@ -61,17 +77,18 @@ export function ShopClient({ products }: ShopClientProps) {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Sort & Search */}
-        <div className="mb-8">
+        {/* Sort, Filter & Search */}
+        <div className="mb-8 space-y-2">
+          {/* Sort By row */}
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">SORT BY:</span>
+              <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">SORT BY:</span>
               <div className="flex flex-wrap gap-1">
                 {sortOptions.map(option => (
                   <button
                     key={option.value}
                     onClick={() => setSortBy(option.value)}
-                    className={`px-3 py-1.5 text-[10px] uppercase tracking-wider font-medium transition-all whitespace-nowrap ${
+                    className={`px-3 py-1.5 text-xs uppercase tracking-wider font-medium transition-all whitespace-nowrap ${
                       sortBy === option.value
                         ? 'bg-[#2D2A26] text-white'
                         : 'bg-transparent text-[#786B59] hover:text-[#2D2A26]'
@@ -93,6 +110,26 @@ export function ShopClient({ products }: ShopClientProps) {
                 className="w-full pl-10 pr-4 py-2 border border-[#E5E0D8] bg-white text-sm focus:outline-none focus:border-[#2D2A26] text-[#2D2A26] placeholder-[#786B59]"
               />
               <Search className="absolute left-3 top-2.5 text-[#786B59]" size={16} />
+            </div>
+          </div>
+
+          {/* Filter By row */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">FILTER BY:</span>
+            <div className="flex flex-wrap gap-1">
+              {pieceOptions.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => setPieceFilter(pieceFilter === option.value ? 'all' : option.value)}
+                  className={`px-3 py-1.5 text-xs uppercase tracking-wider font-medium transition-all whitespace-nowrap ${
+                    pieceFilter === option.value
+                      ? 'bg-[#2D2A26] text-white'
+                      : 'bg-transparent text-[#786B59] hover:text-[#2D2A26]'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
