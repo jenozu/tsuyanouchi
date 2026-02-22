@@ -46,8 +46,10 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [imageUrlInput, setImageUrlInput] = useState('');
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -108,13 +110,35 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     router.refresh();
   };
 
+  const parseImageUrls = (val: string): string[] => {
+    if (!val?.trim()) return [];
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const arr = JSON.parse(trimmed) as string[];
+        return Array.isArray(arr) ? arr.filter(Boolean) : [trimmed];
+      } catch {
+        return [trimmed];
+      }
+    }
+    return [trimmed];
+  };
+
+  const serializeImageUrls = (urls: string[]): string => {
+    const filtered = urls.filter(Boolean);
+    if (filtered.length === 0) return '';
+    if (filtered.length === 1) return filtered[0];
+    return JSON.stringify(filtered);
+  };
+
   // --- Form Handlers ---
   const resetForm = () => {
     setCurrentId('');
     setName('');
     setCategory('');
     setDescription('');
-    setImageUrl('');
+    setImageUrls([]);
+    setImageUrlInput('');
     setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
   };
 
@@ -123,7 +147,8 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setName(product.name);
     setCategory(product.category);
     setDescription(product.description);
-    setImageUrl(product.image_url);
+    const urls = parseImageUrls(product.image_url);
+    setImageUrls(urls);
     const existingSizes = product.sizes || [];
     const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
     setSizes(STANDARD_PRINT_SIZES.map(label => ({
@@ -165,13 +190,14 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }
 
     const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
+    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : 'https://picsum.photos/800/800';
     const productData = {
       name,
       description,
       price: avgPrice,
       cost: 0,
       category,
-      image_url: imageUrl || 'https://picsum.photos/800/800',
+      image_url: imageUrlValue,
       stock: 0,
       sizes: sizes
     };
@@ -229,33 +255,56 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
   // --- Image Upload ---
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files?.length) return;
+    e.target.value = '';
 
-    try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const publicUrl = await uploadProductImage(file, fileName);
-      
-      if (publicUrl) {
-        setImageUrl(publicUrl);
-      } else {
-        // Fallback to base64 if Supabase upload fails
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImageUrl(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+    const newUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const fileName = `${Date.now()}-${i}-${file.name}`;
+        const publicUrl = await uploadProductImage(file, fileName);
+        if (publicUrl) {
+          newUrls.push(publicUrl);
+        } else {
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+          newUrls.push(dataUrl);
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        newUrls.push(dataUrl);
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      // Fallback to base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    }
+    setImageUrls(prev => [...prev, ...newUrls]);
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleImageDragStart = (index: number) => setDraggedImageIndex(index);
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedImageIndex === null) return;
+    if (draggedImageIndex !== index) {
+      const newUrls = [...imageUrls];
+      const [dragged] = newUrls.splice(draggedImageIndex, 1);
+      newUrls.splice(index, 0, dragged);
+      setImageUrls(newUrls);
+      setDraggedImageIndex(index);
     }
   };
+  const handleImageDragEnd = () => setDraggedImageIndex(null);
 
   // --- AI Generation ---
   const handleGenerateDescription = async () => {
@@ -780,6 +829,84 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       />
                     </div>
 
+                    {/* Product Images */}
+                    <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
+                      <label className="text-sm font-medium text-[#4A4036]">Product Images</label>
+                      <p className="text-xs text-[#786B59]">Add multiple images. Drag to reorder. First image is the primary.</p>
+                      
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                        {imageUrls.map((url, index) => (
+                          <div
+                            key={`${url.slice(-20)}-${index}`}
+                            draggable
+                            onDragStart={() => handleImageDragStart(index)}
+                            onDragOver={(e) => handleImageDragOver(e, index)}
+                            onDragEnd={handleImageDragEnd}
+                            className={`relative aspect-square border bg-[#F2EFE9] overflow-hidden group cursor-grab active:cursor-grabbing ${draggedImageIndex === index ? 'ring-2 ring-[#2D2A26] opacity-60' : 'border-[#E5E0D8]'}`}
+                          >
+                            <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+                              <GripVertical className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" size={24} />
+                            </div>
+                            {index === 0 && (
+                              <span className="absolute top-1 left-1 bg-[#2D2A26] text-white text-[10px] px-1.5 py-0.5 uppercase">Primary</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md border border-[#E5E0D8] hover:bg-red-50 hover:text-red-600 transition-colors"
+                            >
+                              <X size={12} />
+                            </button>
+                          </div>
+                        ))}
+                        <label className="relative aspect-square border-2 border-dashed border-[#E5E0D8] bg-[#F9F8F4] flex flex-col items-center justify-center cursor-pointer hover:border-[#2D2A26] hover:bg-[#F2EFE9] transition-colors">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <Upload size={24} className="text-[#786B59] mb-1" />
+                          <span className="text-xs text-[#786B59]">Add</span>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="text"
+                          value={imageUrlInput}
+                          onChange={(e) => setImageUrlInput(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const v = imageUrlInput.trim();
+                              if (v) {
+                                setImageUrls(prev => [...prev, v]);
+                                setImageUrlInput('');
+                              }
+                            }
+                          }}
+                          className="flex-1 p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none text-sm"
+                          placeholder="Or paste image URL and press Enter"
+                        />
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          onClick={() => {
+                            const v = imageUrlInput.trim();
+                            if (v) {
+                              setImageUrls(prev => [...prev, v]);
+                              setImageUrlInput('');
+                            }
+                          }}
+                        >
+                          Add URL
+                        </Button>
+                      </div>
+                    </div>
+
                     {/* Sizes & Pricing */}
                     <div className="p-4 bg-[#F2EFE9] border border-[#E5E0D8] rounded-none">
                       <h4 className="flex items-center gap-2 text-sm font-medium text-[#2D2A26] mb-4">
@@ -817,58 +944,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         ))}
                       </div>
                       <p className="text-[10px] text-[#786B59] mt-2">Drag to reorder sizes.</p>
-                    </div>
-
-                    {/* Image Section */}
-                    <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
-                      <label className="text-sm font-medium text-[#4A4036]">Product Image</label>
-                      
-                      <div className="flex items-start gap-4">
-                        {imageUrl ? (
-                          <div className="relative w-24 h-24 border border-[#E5E0D8] bg-[#F2EFE9] flex-shrink-0">
-                            <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                            <button 
-                              onClick={() => setImageUrl('')}
-                              className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-[#E5E0D8] hover:text-red-600"
-                            >
-                              <X size={12} />
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-24 h-24 border border-dashed border-[#E5E0D8] bg-[#F9F8F4] flex items-center justify-center text-[#786B59]">
-                            <ImageIcon size={24} />
-                          </div>
-                        )}
-
-                        <div className="flex-1 space-y-3">
-                          <div className="relative">
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleImageUpload}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className="flex items-center justify-center w-full p-3 border border-[#E5E0D8] bg-white hover:bg-[#F2EFE9] transition-colors text-sm text-[#2D2A26] cursor-pointer gap-2">
-                              <Upload size={16} />
-                              Upload from Computer
-                            </div>
-                          </div>
-
-                          <div className="relative flex items-center py-1">
-                            <div className="flex-grow border-t border-[#E5E0D8]"></div>
-                            <span className="flex-shrink-0 mx-4 text-xs text-[#786B59] uppercase">Or enter URL</span>
-                            <div className="flex-grow border-t border-[#E5E0D8]"></div>
-                          </div>
-
-                          <input 
-                            value={imageUrl.startsWith('data:') ? 'Image Uploaded' : imageUrl} 
-                            onChange={(e) => !imageUrl.startsWith('data:') && setImageUrl(e.target.value)}
-                            disabled={imageUrl.startsWith('data:')}
-                            className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors text-sm"
-                            placeholder="https://..."
-                          />
-                        </div>
-                      </div>
                     </div>
 
                     <div className="flex justify-end pt-6 gap-4">

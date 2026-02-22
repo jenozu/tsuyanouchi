@@ -67,6 +67,24 @@ export interface ShippingRate {
   updated_at?: string
 }
 
+// ==================== PRODUCT HELPERS ====================
+
+/** Parse image_url which may be a single URL or JSON array of URLs */
+export function getImageUrls(product: Product): string[] {
+  const val = product.image_url;
+  if (!val?.trim()) return [];
+  const trimmed = val.trim();
+  if (trimmed.startsWith('[')) {
+    try {
+      const arr = JSON.parse(trimmed) as string[];
+      return Array.isArray(arr) ? arr.filter(Boolean) : [trimmed];
+    } catch {
+      return [trimmed];
+    }
+  }
+  return [trimmed];
+}
+
 // ==================== PRODUCTS ====================
 
 export async function getProducts(): Promise<Product[]> {
