@@ -83,7 +83,7 @@ export function ShopClient({ products }: ShopClientProps) {
           {/* Sort By row */}
           <div className="flex flex-col md:flex-row md:items-center gap-4">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">SORT BY:</span>
+              <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap w-20 shrink-0">SORT BY:</span>
               <div className="flex flex-wrap gap-1">
                 {sortOptions.map(option => (
                   <button
@@ -116,7 +116,7 @@ export function ShopClient({ products }: ShopClientProps) {
 
           {/* Filter By row */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap">FILTER BY:</span>
+            <span className="text-xs uppercase tracking-wider text-[#786B59] font-medium whitespace-nowrap w-20 shrink-0">FILTER BY:</span>
             <div className="flex flex-wrap gap-1">
               {pieceOptions.map(option => (
                 <button
