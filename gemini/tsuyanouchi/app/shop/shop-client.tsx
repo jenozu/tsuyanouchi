@@ -9,13 +9,13 @@ interface ShopClientProps {
   products: Product[];
 }
 
-type SortOption = 'best-seller' | 'price-low-high' | 'price-high-low' | 'newest' | 'alpha-a-z' | 'alpha-z-a';
+type SortOption = 'none' | 'best-seller' | 'price-low-high' | 'price-high-low' | 'newest' | 'alpha-a-z' | 'alpha-z-a';
 
 type PieceFilter = 'all' | '1-piece' | '2-piece' | '3-piece';
 
 export function ShopClient({ products }: ShopClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [sortBy, setSortBy] = useState<SortOption>('none');
   const [pieceFilter, setPieceFilter] = useState<PieceFilter>('all');
 
   const pieceOptions: { value: PieceFilter; label: string }[] = [
@@ -59,6 +59,7 @@ export function ShopClient({ products }: ShopClientProps) {
           return a.name.localeCompare(b.name);
         case 'alpha-z-a':
           return b.name.localeCompare(a.name);
+        case 'none':
         default:
           return 0;
       }
@@ -87,7 +88,7 @@ export function ShopClient({ products }: ShopClientProps) {
                 {sortOptions.map(option => (
                   <button
                     key={option.value}
-                    onClick={() => setSortBy(option.value)}
+                    onClick={() => setSortBy(sortBy === option.value ? 'none' : option.value)}
                     className={`px-3 py-1.5 text-xs uppercase tracking-wider font-medium transition-all whitespace-nowrap ${
                       sortBy === option.value
                         ? 'bg-[#2D2A26] text-white'
