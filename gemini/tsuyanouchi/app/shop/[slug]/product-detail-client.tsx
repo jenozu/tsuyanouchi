@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Product, ProductSize } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
+import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
@@ -96,10 +97,8 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </div>
             )}
 
-            <div className="prose prose-stone">
-              <p className="text-[#4A4036] leading-relaxed text-lg font-light">
-                {product.description}
-              </p>
+            <div className="prose prose-stone max-w-none text-[#4A4036] leading-relaxed text-lg font-light [&_strong]:font-semibold [&_em]:italic">
+              <ReactMarkdown>{product.description || ''}</ReactMarkdown>
             </div>
 
             <div className="pt-6 flex gap-4">

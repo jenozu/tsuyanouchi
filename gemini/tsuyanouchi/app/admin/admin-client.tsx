@@ -140,6 +140,35 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setActiveTab('PRODUCTS');
   };
 
+  const handleDuplicate = async (product: Product) => {
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: `Copy of ${product.name}`,
+          description: product.description,
+          price: product.price,
+          cost: product.cost,
+          category: product.category,
+          product_type: product.product_type || null,
+          image_url: product.image_url,
+          stock: product.stock,
+          sizes: product.sizes,
+        }),
+      });
+
+      if (response.ok) {
+        refreshData();
+      } else {
+        alert('Failed to duplicate product');
+      }
+    } catch (error) {
+      console.error('Error duplicating product:', error);
+      alert('Error duplicating product');
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
@@ -971,6 +1000,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                                 title="Edit"
                               >
                                 <Edit2 size={16} />
+                              </button>
+                              <button 
+                                onClick={() => handleDuplicate(product)}
+                                className="p-2 text-[#CDC6BC] hover:text-[#2D2A26]"
+                                title="Duplicate"
+                              >
+                                <Copy size={16} />
                               </button>
                               <button 
                                 onClick={() => handleDelete(product.id)}
