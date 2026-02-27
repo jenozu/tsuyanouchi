@@ -49,7 +49,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
   const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
-  const [imageUrlInput, setImageUrlInput] = useState('');
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -138,7 +138,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCategory('');
     setDescription('');
     setImageUrls([]);
-    setImageUrlInput('');
     setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
   };
 
@@ -254,11 +253,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   // --- Image Upload ---
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files?.length) return;
-    e.target.value = '';
-
+  const processFiles = async (files: File[]) => {
     const newUrls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
@@ -286,6 +281,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       }
     }
     setImageUrls(prev => [...prev, ...newUrls]);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileArray = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!fileArray.length) return;
+    await processFiles(fileArray);
   };
 
   const removeImage = (index: number) => {
@@ -832,7 +834,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                     {/* Product Images */}
                     <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
                       <label className="text-sm font-medium text-[#4A4036]">Product Images</label>
-                      <p className="text-xs text-[#786B59]">Add multiple images. Drag to reorder. First image is the primary.</p>
+                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary.</p>
                       
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
                         {imageUrls.map((url, index) => (
@@ -860,7 +862,17 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                             </button>
                           </div>
                         ))}
-                        <label className="relative aspect-square border-2 border-dashed border-[#E5E0D8] bg-[#F9F8F4] flex flex-col items-center justify-center cursor-pointer hover:border-[#2D2A26] hover:bg-[#F2EFE9] transition-colors">
+                        <label
+                          className={`relative aspect-square border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${isDragOver ? 'border-[#2D2A26] bg-[#EAE5DC]' : 'border-[#E5E0D8] bg-[#F9F8F4] hover:border-[#2D2A26] hover:bg-[#F2EFE9]'}`}
+                          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                          onDragLeave={() => setIsDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragOver(false);
+                            const dropped = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                            if (dropped.length) processFiles(dropped);
+                          }}
+                        >
                           <input
                             type="file"
                             accept="image/*"
@@ -868,43 +880,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                             onChange={handleImageUpload}
                             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                           />
-                          <Upload size={24} className="text-[#786B59] mb-1" />
-                          <span className="text-xs text-[#786B59]">Add</span>
+                          <Upload size={24} className={`mb-1 ${isDragOver ? 'text-[#2D2A26]' : 'text-[#786B59]'}`} />
+                          <span className={`text-xs ${isDragOver ? 'text-[#2D2A26] font-medium' : 'text-[#786B59]'}`}>
+                            {isDragOver ? 'Drop here' : 'Add / Drop'}
+                          </span>
                         </label>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="text"
-                          value={imageUrlInput}
-                          onChange={(e) => setImageUrlInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const v = imageUrlInput.trim();
-                              if (v) {
-                                setImageUrls(prev => [...prev, v]);
-                                setImageUrlInput('');
-                              }
-                            }
-                          }}
-                          className="flex-1 p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none text-sm"
-                          placeholder="Or paste image URL and press Enter"
-                        />
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          onClick={() => {
-                            const v = imageUrlInput.trim();
-                            if (v) {
-                              setImageUrls(prev => [...prev, v]);
-                              setImageUrlInput('');
-                            }
-                          }}
-                        >
-                          Add URL
-                        </Button>
-                      </div>
                     </div>
 
                     {/* Sizes & Pricing */}

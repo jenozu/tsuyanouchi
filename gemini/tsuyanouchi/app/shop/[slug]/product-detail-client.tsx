@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Product, ProductSize } from '@/lib/supabase-helpers';
+import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown } from 'lucide-react';
@@ -20,6 +20,9 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const [selectedSize, setSelectedSize] = useState<ProductSize | undefined>(
     product.sizes && product.sizes.length > 0 ? product.sizes[0] : undefined
   );
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const imageUrls = getImageUrls(product);
+  const primaryImage = imageUrls[0] || product.image_url;
 
   const isProductFavorite = isFavorite(product.id);
 
@@ -57,12 +60,30 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
           {/* Image Section */}
-          <div className="relative aspect-[3/4] bg-[#F2EFE9] overflow-hidden shadow-sm border border-[#E5E0D8]">
-            <img 
-              src={product.image_url} 
-              alt={product.name} 
-              className="w-full h-full object-cover mix-blend-multiply opacity-95"
-            />
+          <div className="space-y-3">
+            <div className="relative aspect-[3/4] bg-[#F2EFE9] overflow-hidden shadow-sm border border-[#E5E0D8]">
+              <img 
+                src={imageUrls[selectedImageIndex] || primaryImage} 
+                alt={product.name} 
+                className="w-full h-full object-cover mix-blend-multiply opacity-95"
+              />
+            </div>
+            {imageUrls.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {imageUrls.map((url, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setSelectedImageIndex(i)}
+                    className={`flex-shrink-0 w-16 h-16 border-2 overflow-hidden transition-colors ${
+                      selectedImageIndex === i ? 'border-[#2D2A26]' : 'border-[#E5E0D8] hover:border-[#786B59]'
+                    }`}
+                  >
+                    <img src={url} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Details Section */}

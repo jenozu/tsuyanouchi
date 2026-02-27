@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Product } from '@/lib/supabase-helpers';
+import { Product, getImageUrls } from '@/lib/supabase-helpers';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
@@ -16,6 +16,8 @@ export function ProductCard({ product }: ProductCardProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   
   const isProductFavorite = isFavorite(product.id);
+  const imageUrls = getImageUrls(product);
+  const primaryImage = imageUrls[0] || product.image_url;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.image_url,
+      imageUrl: primaryImage,
     });
   };
 
@@ -41,7 +43,7 @@ export function ProductCard({ product }: ProductCardProps) {
     >
       <div className="aspect-[3/4] overflow-hidden bg-[#F2EFE9] relative">
         <img 
-          src={product.image_url} 
+          src={primaryImage} 
           alt={product.name} 
           className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-95 group-hover:opacity-100 mix-blend-multiply"
         />

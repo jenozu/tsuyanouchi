@@ -13,9 +13,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
+import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { generateProductDescription } from '@/services/gemini';
 import { uploadProductImage } from '@/lib/supabase-helpers';
-import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 
 type AdminTab = 'DASHBOARD' | 'PRODUCTS' | 'ORDERS' | 'SHIPPING' | 'SETTINGS';
 type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';
@@ -45,15 +45,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const [currentId, setCurrentId] = useState<string>('');
   const [name, setName] = useState('');
   const [category, setCategory] = useState('');
-  const [productType, setProductType] = useState<string>('');
   const [description, setDescription] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [sizes, setSizes] = useState<ProductSize[]>([]);
-  
-  // Variation Input State
-  const [variationLabel, setVariationLabel] = useState('');
-  const [variationPrice, setVariationPrice] = useState('');
-  const [variationCost, setVariationCost] = useState('');
+  const [draggedImageIndex, setDraggedImageIndex] = useState<number | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // AI Loading State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -64,7 +60,6 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   // CSV Upload Ref and State
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isImporting, setIsImporting] = useState(false);
-  const [useMultipliers, setUseMultipliers] = useState(false);
 
   // --- Calculations for Dashboard ---
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
@@ -115,58 +110,52 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     router.refresh();
   };
 
+  const parseImageUrls = (val: string): string[] => {
+    if (!val?.trim()) return [];
+    const trimmed = val.trim();
+    if (trimmed.startsWith('[')) {
+      try {
+        const arr = JSON.parse(trimmed) as string[];
+        return Array.isArray(arr) ? arr.filter(Boolean) : [trimmed];
+      } catch {
+        return [trimmed];
+      }
+    }
+    return [trimmed];
+  };
+
+  const serializeImageUrls = (urls: string[]): string => {
+    const filtered = urls.filter(Boolean);
+    if (filtered.length === 0) return '';
+    if (filtered.length === 1) return filtered[0];
+    return JSON.stringify(filtered);
+  };
+
   // --- Form Handlers ---
   const resetForm = () => {
     setCurrentId('');
     setName('');
     setCategory('');
-    setProductType('');
     setDescription('');
-    setImageUrl('');
-    // Initialize with preset sizes
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
-    setIsEditing(false);
+    setImageUrls([]);
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
   };
 
   const handleEdit = (product: Product) => {
     setCurrentId(product.id);
     setName(product.name);
     setCategory(product.category);
-    setProductType(product.product_type || '');
     setDescription(product.description);
-    setImageUrl(product.image_url);
-    setSizes(product.sizes || []);
+    const urls = parseImageUrls(product.image_url);
+    setImageUrls(urls);
+    const existingSizes = product.sizes || [];
+    const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({
+      label,
+      price: sizeMap.get(label) ?? 0
+    })));
     setIsEditing(true);
     setActiveTab('PRODUCTS');
-  };
-
-  const handleDuplicate = async (product: Product) => {
-    try {
-      const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `Copy of ${product.name}`,
-          description: product.description,
-          price: product.price,
-          cost: product.cost,
-          category: product.category,
-          product_type: product.product_type || null,
-          image_url: product.image_url,
-          stock: product.stock,
-          sizes: product.sizes,
-        }),
-      });
-
-      if (response.ok) {
-        refreshData();
-      } else {
-        alert('Failed to duplicate product');
-      }
-    } catch (error) {
-      console.error('Error duplicating product:', error);
-      alert('Error duplicating product');
-    }
   };
 
   const handleDelete = async (id: string) => {
@@ -189,24 +178,26 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleSave = async () => {
-    if (!name || !category || sizes.length === 0) {
-      alert('Please fill in required fields and add at least one variation.');
+    if (!name || !category) {
+      alert('Please fill in Name and Category.');
+      return;
+    }
+    const sizesWithPrice = sizes.filter(s => s.price > 0);
+    if (sizesWithPrice.length === 0) {
+      alert('Please add at least one size with a price.');
       return;
     }
 
-    // Calculate totals from variations
-    const avgPrice = sizes.reduce((sum, size) => sum + size.price, 0) / sizes.length;
-    const avgCost = sizes.reduce((sum, size) => sum + size.cost, 0) / sizes.length;
-
+    const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
+    const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : 'https://picsum.photos/800/800';
     const productData = {
       name,
       description,
-      price: avgPrice, // Use average price for display
-      cost: avgCost, // Use average cost
+      price: avgPrice,
+      cost: 0,
       category,
-      product_type: productType || null,
-      image_url: imageUrl || 'https://picsum.photos/800/800',
-      stock: 0, // Default stock to 0 since variations don't track stock
+      image_url: imageUrlValue,
+      stock: 0,
       sizes: sizes
     };
 
@@ -223,6 +214,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
       if (response.ok) {
         refreshData();
         resetForm();
+        setIsEditing(false);
       } else {
         alert('Failed to save product');
       }
@@ -232,28 +224,11 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }
   };
 
-  // --- Variation Management ---
-  const addVariation = () => {
-    if (variationLabel && variationPrice && variationCost) {
-      setSizes([...sizes, { 
-        label: variationLabel, 
-        price: parseFloat(variationPrice),
-        cost: parseFloat(variationCost)
-      }]);
-      setVariationLabel('');
-      setVariationPrice('');
-      setVariationCost('');
-    }
-  };
-
-  const removeVariation = (index: number) => {
-    setSizes(sizes.filter((_, i) => i !== index));
-  };
-
-  const updateVariation = (index: number, field: 'price' | 'cost', value: string) => {
+  // --- Size Management ---
+  const updateSizePrice = (index: number, value: string) => {
+    const num = parseFloat(value) || 0;
     const newSizes = [...sizes];
-    const numValue = parseFloat(value) || 0;
-    newSizes[index] = { ...newSizes[index], [field]: numValue };
+    newSizes[index] = { ...newSizes[index], price: num };
     setSizes(newSizes);
   };
 
@@ -278,34 +253,60 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   // --- Image Upload ---
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const fileName = `${Date.now()}-${file.name}`;
-      const publicUrl = await uploadProductImage(file, fileName);
-      
-      if (publicUrl) {
-        setImageUrl(publicUrl);
-      } else {
-        // Fallback to base64 if Supabase upload fails
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImageUrl(reader.result as string);
-        };
-        reader.readAsDataURL(file);
+  const processFiles = async (files: File[]) => {
+    const newUrls: string[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      try {
+        const fileName = `${Date.now()}-${i}-${file.name}`;
+        const publicUrl = await uploadProductImage(file, fileName);
+        if (publicUrl) {
+          newUrls.push(publicUrl);
+        } else {
+          const dataUrl = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.readAsDataURL(file);
+          });
+          newUrls.push(dataUrl);
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        const dataUrl = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(file);
+        });
+        newUrls.push(dataUrl);
       }
-    } catch (error) {
-      console.error('Error uploading image:', error);
-      // Fallback to base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    }
+    setImageUrls(prev => [...prev, ...newUrls]);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const fileArray = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!fileArray.length) return;
+    await processFiles(fileArray);
+  };
+
+  const removeImage = (index: number) => {
+    setImageUrls(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const handleImageDragStart = (index: number) => setDraggedImageIndex(index);
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedImageIndex === null) return;
+    if (draggedImageIndex !== index) {
+      const newUrls = [...imageUrls];
+      const [dragged] = newUrls.splice(draggedImageIndex, 1);
+      newUrls.splice(index, 0, dragged);
+      setImageUrls(newUrls);
+      setDraggedImageIndex(index);
     }
   };
+  const handleImageDragEnd = () => setDraggedImageIndex(null);
 
   // --- AI Generation ---
   const handleGenerateDescription = async () => {
@@ -325,22 +326,18 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const handleCSVUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Reset file input
     e.target.value = '';
 
-    // Validate file
     if (!file.name.toLowerCase().endsWith('.csv')) {
       alert('Please upload a valid CSV file (.csv extension)');
       return;
     }
 
     setIsImporting(true);
-
     try {
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('useMultipliers', useMultipliers.toString());
+      formData.append('useMultipliers', 'false');
 
       const response = await fetch('/api/products/import', {
         method: 'POST',
@@ -494,7 +491,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
             className={`w-full flex items-center px-6 py-3 transition-colors ${activeTab === 'PRODUCTS' ? 'bg-[#2D2A26] text-white border-l-4 border-white' : 'hover:bg-[#2D2A26]/50 text-[#786B59]'}`}
           >
             <Package className="mr-3" size={20} />
-            Collection
+            Products
           </button>
           <button 
             onClick={() => setActiveTab('ORDERS')}
@@ -759,47 +756,43 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
           {activeTab === 'PRODUCTS' && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-serif text-[#2D2A26]">Collection Archive</h2>
+                <h2 className="text-3xl font-serif text-[#2D2A26]">Product Management</h2>
                 <div className="flex gap-3">
-                  <input 
-                    type="file" 
-                    accept=".csv" 
-                    ref={fileInputRef} 
-                    onChange={handleCSVUpload} 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    accept=".csv"
+                    ref={fileInputRef}
+                    onChange={handleCSVUpload}
+                    className="hidden"
                   />
-                  <Button 
-                    variant="outline" 
-                    onClick={() => fileInputRef.current?.click()} 
+                  <Button
+                    variant="secondary"
+                    onClick={() => fileInputRef.current?.click()}
                     disabled={isImporting}
-                    className="text-[10px] uppercase font-bold tracking-widest"
                   >
-                    <FileSpreadsheet size={14} className="mr-2" />
+                    <FileSpreadsheet size={16} className="mr-2" />
                     {isImporting ? 'Importing...' : 'Import CSV'}
                   </Button>
-                  <Button 
-                    onClick={() => { setIsEditing(true); resetForm(); }} 
-                    className="text-[10px] uppercase font-bold tracking-widest"
-                  >
-                    <Plus size={16} className="mr-2" />
-                    New Entry
+                  <Button onClick={() => { resetForm(); setIsEditing(true); }}>
+                    <Plus size={20} className="mr-2" />
+                    Add Product
                   </Button>
                 </div>
               </div>
 
               {isEditing ? (
-                <div className="bg-white p-10 border border-[#E5E0D8] shadow-2xl max-w-5xl mx-auto space-y-8">
-                  <div className="flex justify-between items-center">
-                    <h3 className="text-2xl font-serif text-[#2D2A26]">{currentId ? 'Modify Record' : 'Create Record'}</h3>
-                    <button onClick={() => setIsEditing(false)} className="text-[#CDC6BC] hover:text-[#2D2A26]">
+                <div className="bg-white p-8 rounded-none shadow-lg border border-[#E5E0D8] max-w-4xl mx-auto">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-serif text-[#2D2A26]">{currentId ? 'Edit Product' : 'New Product'}</h3>
+                    <button onClick={() => setIsEditing(false)} className="text-[#786B59] hover:text-[#2D2A26]">
                       <X size={24} />
                     </button>
                   </div>
 
-                  <div className="space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Product Name</label>
+                        <label className="text-sm font-medium text-[#4A4036]">Name</label>
                         <input 
                           value={name} 
                           onChange={(e) => setName(e.target.value)}
@@ -808,7 +801,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Category</label>
+                        <label className="text-sm font-medium text-[#4A4036]">Category</label>
                         <input 
                           value={category} 
                           onChange={(e) => setCategory(e.target.value)}
@@ -816,32 +809,18 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                           placeholder="Home Decor"
                         />
                       </div>
-
-                      <div className="space-y-2 md:col-span-2">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Product Type</label>
-                        <select
-                          value={productType}
-                          onChange={(e) => setProductType(e.target.value)}
-                          className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors"
-                        >
-                          <option value="">-- Select Type --</option>
-                          <option value="Single Print">Single Print</option>
-                          <option value="2-piece Set">2-piece Set</option>
-                          <option value="3-piece Set">3-piece Set</option>
-                        </select>
-                      </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <label className="text-[10px] uppercase tracking-widest font-bold text-[#786B59]">Description</label>
+                        <label className="text-sm font-medium text-[#4A4036]">Description</label>
                         <button 
                           onClick={handleGenerateDescription}
                           disabled={isGenerating}
-                          className="text-[10px] uppercase tracking-widest text-[#8C3F3F] flex items-center gap-1 hover:opacity-80 disabled:opacity-30"
+                          className="flex items-center text-xs text-purple-700 bg-purple-50 px-2 py-1 rounded hover:bg-purple-100 transition-colors disabled:opacity-50"
                         >
-                          <Wand2 size={12} /> 
-                          {isGenerating ? 'Drafting...' : 'AI Assistant'}
+                          <Wand2 size={12} className="mr-1" /> 
+                          {isGenerating ? 'Generating...' : 'AI Generate'}
                         </button>
                       </div>
                       <textarea 
@@ -852,118 +831,105 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       />
                     </div>
 
-                    {/* Variations Section */}
-                    <div className="bg-[#F9F8F4] p-6 border border-[#E5E0D8] space-y-6">
-                      <h4 className="text-[10px] uppercase tracking-widest font-bold text-[#2D2A26]">
-                        Variations
-                      </h4>
-                      
-                      {/* Variations List */}
-                      <div className="space-y-2">
-                        {sizes.length === 0 ? (
-                          <p className="text-xs text-[#786B59] italic text-center py-4">
-                            No variations added yet.
-                          </p>
-                        ) : (
-                          sizes.map((variation, index) => (
-                            <div 
-                              key={index} 
-                              className="flex items-center gap-4 bg-white p-3 border border-[#E5E0D8]"
-                            >
-                              <span className="flex-1 text-xs font-bold">{variation.label}</span>
-                              <input 
-                                type="number"
-                                value={variation.price || ''}
-                                onChange={(e) => updateVariation(index, 'price', e.target.value)}
-                                className="w-24 p-2 border border-[#E5E0D8] text-xs text-right"
-                                placeholder="Price"
-                                step="0.01"
-                              />
-                              <input 
-                                type="number"
-                                value={variation.cost || ''}
-                                onChange={(e) => updateVariation(index, 'cost', e.target.value)}
-                                className="w-24 p-2 border border-[#E5E0D8] text-xs text-right"
-                                placeholder="Cost"
-                                step="0.01"
-                              />
-                              <button 
-                                onClick={() => removeVariation(index)} 
-                                className="text-[#CDC6BC] hover:text-[#8C3F3F] transition-colors"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          ))
-                        )}
-                      </div>
-
-                      {/* Add Variation Form */}
-                      <div className="border-t border-[#E5E0D8] pt-4">
-                        <Button 
-                          variant="outline" 
-                          className="w-full text-[9px] py-2 border-dashed" 
-                          onClick={() => setSizes([...sizes, { label: 'Custom', price: 0, cost: 0 }])}
-                        >
-                          Add Custom Variation
-                        </Button>
-                      </div>
-                    </div>
-
-                    {/* Image Section */}
+                    {/* Product Images */}
                     <div className="space-y-4 pt-4 border-t border-[#E5E0D8]">
-                      <label className="text-sm font-medium text-[#4A4036]">Product Image</label>
+                      <label className="text-sm font-medium text-[#4A4036]">Product Images</label>
+                      <p className="text-xs text-[#786B59]">Add multiple images by clicking or dragging onto the upload area. Drag thumbnails to reorder. First image is the primary.</p>
                       
-                      <div className="flex items-start gap-4">
-                        {imageUrl ? (
-                          <div className="relative w-24 h-24 border border-[#E5E0D8] bg-[#F2EFE9] flex-shrink-0">
-                            <img src={imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                            <button 
-                              onClick={() => setImageUrl('')}
-                              className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow-md border border-[#E5E0D8] hover:text-red-600"
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                        {imageUrls.map((url, index) => (
+                          <div
+                            key={`${url.slice(-20)}-${index}`}
+                            draggable
+                            onDragStart={() => handleImageDragStart(index)}
+                            onDragOver={(e) => handleImageDragOver(e, index)}
+                            onDragEnd={handleImageDragEnd}
+                            className={`relative aspect-square border bg-[#F2EFE9] overflow-hidden group cursor-grab active:cursor-grabbing ${draggedImageIndex === index ? 'ring-2 ring-[#2D2A26] opacity-60' : 'border-[#E5E0D8]'}`}
+                          >
+                            <img src={url} alt={`Product ${index + 1}`} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
+                              <GripVertical className="text-white opacity-0 group-hover:opacity-100 drop-shadow-md" size={24} />
+                            </div>
+                            {index === 0 && (
+                              <span className="absolute top-1 left-1 bg-[#2D2A26] text-white text-[10px] px-1.5 py-0.5 uppercase">Primary</span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md border border-[#E5E0D8] hover:bg-red-50 hover:text-red-600 transition-colors"
                             >
                               <X size={12} />
                             </button>
                           </div>
-                        ) : (
-                          <div className="w-24 h-24 border border-dashed border-[#E5E0D8] bg-[#F9F8F4] flex items-center justify-center text-[#786B59]">
-                            <ImageIcon size={24} />
-                          </div>
-                        )}
+                        ))}
+                        <label
+                          className={`relative aspect-square border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${isDragOver ? 'border-[#2D2A26] bg-[#EAE5DC]' : 'border-[#E5E0D8] bg-[#F9F8F4] hover:border-[#2D2A26] hover:bg-[#F2EFE9]'}`}
+                          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                          onDragLeave={() => setIsDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setIsDragOver(false);
+                            const dropped = Array.from(e.dataTransfer.files).filter(f => f.type.startsWith('image/'));
+                            if (dropped.length) processFiles(dropped);
+                          }}
+                        >
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageUpload}
+                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          />
+                          <Upload size={24} className={`mb-1 ${isDragOver ? 'text-[#2D2A26]' : 'text-[#786B59]'}`} />
+                          <span className={`text-xs ${isDragOver ? 'text-[#2D2A26] font-medium' : 'text-[#786B59]'}`}>
+                            {isDragOver ? 'Drop here' : 'Add / Drop'}
+                          </span>
+                        </label>
+                      </div>
 
-                        <div className="flex-1 space-y-3">
-                          <div className="relative">
-                            <input 
-                              type="file" 
-                              accept="image/*" 
-                              onChange={handleImageUpload}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                            />
-                            <div className="flex items-center justify-center w-full p-3 border border-[#E5E0D8] bg-white hover:bg-[#F2EFE9] transition-colors text-sm text-[#2D2A26] cursor-pointer gap-2">
-                              <Upload size={16} />
-                              Upload from Computer
+                    </div>
+
+                    {/* Sizes & Pricing */}
+                    <div className="p-4 bg-[#F2EFE9] border border-[#E5E0D8] rounded-none">
+                      <h4 className="flex items-center gap-2 text-sm font-medium text-[#2D2A26] mb-4">
+                        Sizes & Pricing
+                      </h4>
+                      <p className="text-xs text-[#786B59] mb-4">Add the price for each size. At least one size must have a price.</p>
+
+                      <div className="space-y-2">
+                        {sizes.map((size, index) => (
+                          <div 
+                            key={index} 
+                            className={`flex items-center justify-between bg-white p-3 border ${draggedSizeIndex === index ? 'border-[#2D2A26] shadow-md opacity-50' : 'border-[#E5E0D8]'}`}
+                            draggable
+                            onDragStart={() => handleDragStart(index)}
+                            onDragOver={(e) => handleDragOver(e, index)}
+                            onDragEnd={handleDragEnd}
+                          >
+                            <div className="flex items-center gap-3">
+                              <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
+                              <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[#786B59]">$</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                value={size.price || ''}
+                                onChange={(e) => updateSizePrice(index, e.target.value)}
+                                className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                placeholder="0"
+                              />
                             </div>
                           </div>
-
-                          <div className="relative flex items-center py-1">
-                            <div className="flex-grow border-t border-[#E5E0D8]"></div>
-                            <span className="flex-shrink-0 mx-4 text-xs text-[#786B59] uppercase">Or enter URL</span>
-                            <div className="flex-grow border-t border-[#E5E0D8]"></div>
-                          </div>
-
-                          <input 
-                            value={imageUrl.startsWith('data:') ? 'Image Uploaded' : imageUrl} 
-                            onChange={(e) => !imageUrl.startsWith('data:') && setImageUrl(e.target.value)}
-                            disabled={imageUrl.startsWith('data:')}
-                            className="w-full p-3 bg-[#F9F8F4] border border-[#E5E0D8] focus:border-[#2D2A26] outline-none transition-colors text-sm"
-                            placeholder="https://..."
-                          />
-                        </div>
+                        ))}
                       </div>
+                      <p className="text-[10px] text-[#786B59] mt-2">Drag to reorder sizes.</p>
                     </div>
 
                     <div className="flex justify-end pt-6 gap-4">
-                      <Button variant="secondary" onClick={() => { setIsEditing(false); resetForm(); }}>
+                      <Button variant="secondary" onClick={() => { resetForm(); setIsEditing(false); }}>
                         Cancel
                       </Button>
                       <Button onClick={handleSave}>
@@ -973,44 +939,47 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                   </div>
                 </div>
               ) : (
-                <div className="bg-white border border-[#E5E0D8] overflow-hidden">
+                <div className="bg-white rounded-none shadow-sm border border-[#E5E0D8] overflow-hidden">
                   <table className="w-full text-left">
-                    <thead className="bg-[#F2EFE9] text-[#786B59] text-[10px] uppercase tracking-widest font-bold">
+                    <thead className="bg-[#F2EFE9] text-[#786B59] text-xs uppercase tracking-wider">
                       <tr>
-                        <th className="p-4">Item</th>
-                        <th className="p-4">Category</th>
-                        <th className="p-4 text-right">MSRP</th>
-                        <th className="p-4 text-right">Actions</th>
+                        <th className="p-4 font-medium">Product</th>
+                        <th className="p-4 font-medium">Category</th>
+                        <th className="p-4 font-medium text-right">Cost</th>
+                        <th className="p-4 font-medium text-right">Price</th>
+                        <th className="p-4 font-medium text-right">Stock</th>
+                        <th className="p-4 font-medium text-right">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E0D8]">
                       {products.map((product) => (
                         <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
-                          <td className="p-4 font-medium text-[#2D2A26] flex items-center gap-4">
-                            <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover border" />
-                            {product.name}
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
+                              <span className="font-medium text-[#2D2A26]">{product.name}</span>
+                            </div>
                           </td>
-                          <td className="p-4 text-[#786B59] text-sm">{product.category}</td>
-                          <td className="p-4 text-right font-medium">${product.price}</td>
+                          <td className="p-4 text-[#4A4036] text-sm">{product.category}</td>
+                          <td className="p-4 text-right text-[#786B59] text-sm">${product.cost || 0}</td>
+                          <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price}</td>
+                          <td className="p-4 text-right">
+                            <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                              {product.stock}
+                            </span>
+                          </td>
                           <td className="p-4 text-right">
                             <div className="flex justify-end gap-2">
                               <button 
                                 onClick={() => handleEdit(product)}
-                                className="p-2 text-[#CDC6BC] hover:text-[#2D2A26]"
+                                className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
                                 title="Edit"
                               >
                                 <Edit2 size={16} />
                               </button>
                               <button 
-                                onClick={() => handleDuplicate(product)}
-                                className="p-2 text-[#CDC6BC] hover:text-[#2D2A26]"
-                                title="Duplicate"
-                              >
-                                <Copy size={16} />
-                              </button>
-                              <button 
                                 onClick={() => handleDelete(product.id)}
-                                className="p-2 text-[#CDC6BC] hover:text-[#8C3F3F]"
+                                className="p-2 text-[#786B59] hover:bg-red-50 hover:text-red-600 transition-colors"
                                 title="Delete"
                               >
                                 <Trash2 size={16} />
