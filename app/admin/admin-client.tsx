@@ -106,7 +106,16 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }));
   }, [totalValue]);
 
-  const refreshData = () => {
+  const refreshData = async () => {
+    try {
+      const res = await fetch('/api/products');
+      if (res.ok) {
+        const fresh = await res.json();
+        setProducts(fresh);
+      }
+    } catch (err) {
+      console.error('Error refreshing products:', err);
+    }
     router.refresh();
   };
 
@@ -159,20 +168,35 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleDuplicate = async (product: Product) => {
+    const baseName = product.name.replace(/ - Copy( \d+)?$/, '');
+    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const existingCopies = products.filter(p =>
+      p.name === `${baseName} - Copy` ||
+      new RegExp(`^${escapedBase} - Copy \\d+$`).test(p.name)
+    );
+    const copyName = existingCopies.length === 0
+      ? `${baseName} - Copy`
+      : `${baseName} - Copy ${existingCopies.length + 1}`;
+
+    const effectivePrice = product.price || (
+      product.sizes && product.sizes.length > 0
+        ? Math.round(product.sizes.reduce((s, z) => s + z.price, 0) / product.sizes.length)
+        : 1
+    );
+
     try {
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: `Copy of ${product.name}`,
+          name: copyName,
           description: product.description,
-          price: product.price,
-          cost: product.cost,
+          price: effectivePrice,
+          cost: product.cost ?? 0,
           category: product.category,
-          product_type: (product as Product & { product_type?: string }).product_type || null,
           image_url: product.image_url,
-          stock: product.stock,
-          sizes: product.sizes,
+          stock: product.stock ?? 0,
+          sizes: product.sizes ?? [],
         }),
       });
       if (response.ok) {
