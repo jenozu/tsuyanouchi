@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate required fields
-    if (!body.name || !body.price || !body.category) {
+    // Validate required fields (price == null check allows price:0)
+    if (!body.name || body.price == null || !body.category) {
       return NextResponse.json(
         { error: 'Missing required fields: name, price, category' },
         { status: 400 }

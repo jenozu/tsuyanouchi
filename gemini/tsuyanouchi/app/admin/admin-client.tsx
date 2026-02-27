@@ -159,29 +159,64 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   };
 
   const handleDuplicate = async (product: Product) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'B',location:'admin-client.tsx:handleDuplicate-entry',message:'handleDuplicate called',data:{id:product.id,name:product.name,price:product.price,priceIsFalsy:!product.price},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
+
+    // Build sequential copy name from base name
+    const baseName = product.name.replace(/ - Copy( \d+)?$/, '');
+    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const existingCopies = products.filter(p =>
+      p.name === `${baseName} - Copy` ||
+      new RegExp(`^${escapedBase} - Copy \\d+$`).test(p.name)
+    );
+    const copyName = existingCopies.length === 0
+      ? `${baseName} - Copy`
+      : `${baseName} - Copy ${existingCopies.length + 1}`;
+
+    // Use avgPrice from sizes if product.price is 0
+    const effectivePrice = product.price || (
+      product.sizes && product.sizes.length > 0
+        ? Math.round(product.sizes.reduce((s, z) => s + z.price, 0) / product.sizes.length)
+        : 1
+    );
+
     try {
+      const payload = {
+        name: copyName,
+        description: product.description,
+        price: effectivePrice,
+        cost: product.cost ?? 0,
+        category: product.category,
+        image_url: product.image_url,
+        stock: product.stock ?? 0,
+        sizes: product.sizes ?? [],
+      };
+      // #region agent log
+      fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'A',location:'admin-client.tsx:handleDuplicate-prefetch',message:'Sending POST /api/products',data:{copyName,effectivePrice,category:product.category},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       const response = await fetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `Copy of ${product.name}`,
-          description: product.description,
-          price: product.price,
-          cost: product.cost,
-          category: product.category,
-          product_type: (product as Product & { product_type?: string }).product_type || null,
-          image_url: product.image_url,
-          stock: product.stock,
-          sizes: product.sizes,
-        }),
+        body: JSON.stringify(payload),
       });
+      // #region agent log
+      fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'A',location:'admin-client.tsx:handleDuplicate-postfetch',message:'POST response received',data:{status:response.status,ok:response.ok},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       if (response.ok) {
         refreshData();
       } else {
+        const errBody = await response.text();
+        // #region agent log
+        fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'A',location:'admin-client.tsx:handleDuplicate-error-body',message:'POST non-ok body',data:{errBody},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         alert('Failed to duplicate product');
       }
     } catch (error) {
       console.error('Error duplicating product:', error);
+      // #region agent log
+      fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'A',location:'admin-client.tsx:handleDuplicate-catch',message:'Exception caught',data:{err:String(error)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
       alert('Error duplicating product');
     }
   };
@@ -282,12 +317,18 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
   // --- Image Upload ---
   const processFiles = async (files: File[]) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'D',location:'admin-client.tsx:processFiles-entry',message:'processFiles called',data:{fileCount:files.length,fileNames:files.map(f=>f.name)},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const newUrls: string[] = [];
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       try {
         const fileName = `${Date.now()}-${i}-${file.name}`;
         const publicUrl = await uploadProductImage(file, fileName);
+        // #region agent log
+        fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'D',location:'admin-client.tsx:processFiles-upload-result',message:'uploadProductImage result',data:{fileName,publicUrl:publicUrl?publicUrl.substring(0,80)+'...':null},timestamp:Date.now()})}).catch(()=>{});
+        // #endregion
         if (publicUrl) {
           newUrls.push(publicUrl);
         } else {
@@ -308,10 +349,16 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
         newUrls.push(dataUrl);
       }
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'D',location:'admin-client.tsx:processFiles-setImageUrls',message:'Calling setImageUrls',data:{newUrlCount:newUrls.length,types:newUrls.map(u=>u.startsWith('data:')?'dataUrl':'supabaseUrl')},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     setImageUrls(prev => [...prev, ...newUrls]);
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7330/ingest/24ad6f30-b99f-4f30-811c-197f1a124501',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'a98552'},body:JSON.stringify({sessionId:'a98552',hypothesisId:'E',location:'admin-client.tsx:handleImageUpload',message:'onChange fired',data:{fileCount:e.target.files?.length??0},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const fileArray = Array.from(e.target.files || []);
     e.target.value = '';
     if (!fileArray.length) return;
