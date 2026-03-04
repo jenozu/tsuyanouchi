@@ -9,6 +9,7 @@ const config: Config = {
     extend: {
       fontFamily: {
         serif: ['Georgia', 'Cambria', 'Times New Roman', 'Times', 'serif'],
+        header: ['var(--font-header)', 'Georgia', 'serif'],
       },
       colors: {
         primary: {

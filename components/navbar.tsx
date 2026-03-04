@@ -47,7 +47,7 @@ export function Navbar() {
 
             {/* Logo */}
             <div className="flex-1 flex justify-center md:justify-start">
-              <Link href="/" className="text-2xl font-serif font-bold tracking-tight text-[#2D2A26]">
+              <Link href="/" className="text-2xl font-header font-bold tracking-tight text-[#2D2A26]">
                 {APP_NAME}
               </Link>
             </div>
