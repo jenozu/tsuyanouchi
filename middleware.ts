@@ -11,8 +11,9 @@ export function middleware(request: NextRequest) {
     const isApi = pathname.startsWith('/api')
     const isStatic = pathname.startsWith('/_next/static') || pathname.startsWith('/_next/image')
     const isFavicon = pathname === '/favicon.ico'
+    const isAdmin = pathname.startsWith('/admin')
 
-    if (!isUnderConstructionPage && !isApi && !isStatic && !isFavicon) {
+    if (!isUnderConstructionPage && !isApi && !isStatic && !isFavicon && !isAdmin) {
       return NextResponse.redirect(new URL('/under-construction', request.url))
     }
   }
