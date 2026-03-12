@@ -65,6 +65,14 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
   const lowStockItems = useMemo(() => products.filter(p => p.stock < 5), [products]);
   const totalStock = useMemo(() => products.reduce((acc, p) => acc + p.stock, 0), [products]);
   const totalValue = useMemo(() => products.reduce((acc, p) => acc + (p.price * p.stock), 0), [products]);
+  const totalCostBasis = useMemo(
+    () => products.reduce((acc, p) => acc + ((p.cost || 0) * p.stock), 0),
+    [products]
+  );
+  const totalUnrealizedProfit = useMemo(
+    () => products.reduce((acc, p) => acc + ((p.price - (p.cost || 0)) * p.stock), 0),
+    [products]
+  );
   
   const categoryData = useMemo(() => {
     const counts = products.reduce((acc, product) => {
@@ -147,7 +155,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     setCategory('');
     setDescription('');
     setImageUrls([]);
-    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0 })));
+    setSizes(STANDARD_PRINT_SIZES.map(label => ({ label, price: 0, cost: 0 })));
   };
 
   const handleEdit = (product: Product) => {
@@ -158,10 +166,12 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const urls = parseImageUrls(product.image_url);
     setImageUrls(urls);
     const existingSizes = product.sizes || [];
-    const sizeMap = new Map(existingSizes.map(s => [s.label, s.price]));
+    const priceMap = new Map(existingSizes.map(s => [s.label, s.price]));
+    const costMap = new Map(existingSizes.map(s => [s.label, s.cost ?? 0]));
     setSizes(STANDARD_PRINT_SIZES.map(label => ({
       label,
-      price: sizeMap.get(label) ?? 0
+      price: priceMap.get(label) ?? 0,
+      cost: costMap.get(label) ?? 0,
     })));
     setIsEditing(true);
     setActiveTab('PRODUCTS');
@@ -241,16 +251,24 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     }
 
     const avgPrice = Math.round(sizesWithPrice.reduce((sum, s) => sum + s.price, 0) / sizesWithPrice.length);
+    const costSizes = sizesWithPrice.filter(s => (s.cost ?? 0) > 0);
+    const avgCost = costSizes.length > 0
+      ? Math.round(costSizes.reduce((sum, s) => sum + (s.cost ?? 0), 0) / costSizes.length)
+      : 0;
     const imageUrlValue = imageUrls.length > 0 ? serializeImageUrls(imageUrls) : 'https://picsum.photos/800/800';
     const productData = {
       name,
       description,
       price: avgPrice,
-      cost: 0,
+      cost: avgCost,
       category,
       image_url: imageUrlValue,
       stock: 0,
-      sizes: sizes
+      sizes: sizes.map(s => ({
+        label: s.label,
+        price: s.price,
+        cost: s.cost ?? 0,
+      })),
     };
 
     try {
@@ -281,6 +299,13 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
     const num = parseFloat(value) || 0;
     const newSizes = [...sizes];
     newSizes[index] = { ...newSizes[index], price: num };
+    setSizes(newSizes);
+  };
+
+  const updateSizeCost = (index: number, value: string) => {
+    const num = parseFloat(value) || 0;
+    const newSizes = [...sizes];
+    newSizes[index] = { ...newSizes[index], cost: num };
     setSizes(newSizes);
   };
 
@@ -485,7 +510,15 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
 
             {detailModal === 'VALUATION_DETAILS' && (
               <div>
-                <p className="mb-4 text-sm text-[#4A4036]">Total Asset Value: <span className="font-bold text-[#2D2A26]">${totalValue.toLocaleString()}</span></p>
+                <p className="mb-2 text-sm text-[#4A4036]">
+                  Total Asset Value (Retail): <span className="font-bold text-[#2D2A26]">${totalValue.toLocaleString()}</span>
+                </p>
+                <p className="mb-2 text-sm text-[#4A4036]">
+                  Total Cost Basis: <span className="font-bold text-[#2D2A26]">${totalCostBasis.toLocaleString()}</span>
+                </p>
+                <p className="mb-4 text-sm text-[#4A4036]">
+                  Unrealized Profit Potential: <span className="font-bold text-[#5C7C66]">+${totalUnrealizedProfit.toLocaleString()}</span>
+                </p>
                 <table className="w-full text-left">
                   <thead className="text-xs uppercase text-[#786B59] border-b border-[#E5E0D8]">
                     <tr>
@@ -962,17 +995,31 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                               <GripVertical size={16} className="text-[#786B59] cursor-grab active:cursor-grabbing" />
                               <span className="text-sm font-medium text-[#2D2A26]">{size.label}</span>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-[#786B59]">$</span>
-                              <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={size.price || ''}
-                                onChange={(e) => updateSizePrice(index, e.target.value)}
-                                className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
-                                placeholder="0"
-                              />
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-[#786B59]">$</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.price || ''}
+                                  onChange={(e) => updateSizePrice(index, e.target.value)}
+                                  className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xs text-[#786B59]">Cost</span>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.01"
+                                  value={size.cost ?? ''}
+                                  onChange={(e) => updateSizeCost(index, e.target.value)}
+                                  className="w-24 p-2 text-sm border border-[#E5E0D8] focus:border-[#2D2A26] outline-none"
+                                  placeholder="0"
+                                />
+                              </div>
                             </div>
                           </div>
                         ))}

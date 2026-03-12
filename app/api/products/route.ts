@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
       name: body.name,
       description: body.description || '',
       price: parseFloat(body.price),
-      cost: body.cost ? parseFloat(body.cost) : undefined,
+      cost: body.cost != null ? parseFloat(body.cost) : undefined,
       category: body.category,
       image_url: body.image_url || body.imageUrl || '',
       stock: parseInt(body.stock) || 0,

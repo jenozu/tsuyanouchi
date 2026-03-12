@@ -10,6 +10,9 @@ Your CSV now supports **individual prices and costs for each size variation**!
 
 1. **`csv-template-blank.csv`** - Empty template with all columns
 2. **`csv-template-with-example.csv`** - Template with pricing example
+3. **`csv-template-1pc.csv`** - Pre-filled with 1pc prices (stock 999)
+4. **`csv-template-2pc.csv`** - Pre-filled with 2pc prices (stock 999)
+5. **`csv-template-3pc.csv`** - Pre-filled with 3pc prices (stock 999)
 
 ---
 
@@ -28,7 +31,7 @@ Your CSV now supports **individual prices and costs for each size variation**!
 
 | Column | Type | Example | Notes |
 |--------|------|---------|-------|
-| **description** | Text | `"Beautiful print"` | Product description |
+| **description** | Text | `"Beautiful print"` | Product description. Use `<br>` or `<br/>` for line breaks. |
 | **videoUrl** | Text | `"https://..."` | Video URL for hover |
 
 ### Size-Specific Price Columns (At Least One Required)
@@ -174,6 +177,14 @@ Open `csv-template-blank.csv` in Excel
 ✅ "mountain.jpg"
 ❌ "1/mountain.jpg"
 ```
+
+### 6. Line Breaks in Description (HTML)
+You can use **HTML** in the description so it displays with line breaks on the product page. Use `<br>` or `<br/>` where you want a new line:
+```csv
+✅ "First line.<br>Second line.<br>Third line."
+✅ "Keywords: Art | Print | Wall<br><br>Product Details:<br>- Premium paper<br>- Multiple sizes"
+```
+Plain newlines inside a CSV cell are not supported (they would break the row), so use `<br>` for line spacing.
 
 ---
 

@@ -5,6 +5,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export interface ProductSize {
   label: string;
   price: number;
+  cost?: number;
 }
 
 export interface CartItem {
