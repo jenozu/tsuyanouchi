@@ -62,8 +62,9 @@
 - [ ] Verify price displays correctly
 - [ ] Click on product to view details
 - [ ] **Product Detail Page:**
-  - [ ] Verify "Select Size" dropdown appears
+  - [ ] Verify "Select Size" dropdown appears directly above Add to Cart
   - [ ] Verify all variations are listed in dropdown
+  - [ ] Verify benefits strip shows: Free Shipping, Easy Returns, Secure Checkout (with icons)
   - [ ] Verify each variation shows correct price
   - [ ] Select different sizes
   - [ ] Verify price updates when size changes
