@@ -6,7 +6,7 @@ import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
-import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, RotateCcw } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
 
@@ -94,8 +94,12 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               <h1 className="text-4xl md:text-5xl font-serif text-[#2D2A26] leading-tight">{product.name}</h1>
               <p className="text-2xl font-medium text-[#4A4036]">${currentPrice.toLocaleString()}</p>
             </div>
-            
-            {/* Size Selector */}
+
+            <div className="prose prose-stone max-w-none text-[#4A4036] leading-relaxed text-lg font-light [&_strong]:font-semibold [&_em]:italic">
+              <ReactMarkdown rehypePlugins={[rehypeRaw]}>{product.description || ''}</ReactMarkdown>
+            </div>
+
+            {/* Size Selector (positioned directly above Add to Cart) */}
             {product.sizes && product.sizes.length > 0 && (
               <div className="space-y-3">
                 <label className="text-sm font-medium text-[#2D2A26] uppercase tracking-wide">Select Size</label>
@@ -119,10 +123,6 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </div>
             )}
 
-            <div className="prose prose-stone max-w-none text-[#4A4036] leading-relaxed text-lg font-light [&_strong]:font-semibold [&_em]:italic">
-              <ReactMarkdown rehypePlugins={[rehypeRaw]}>{product.description || ''}</ReactMarkdown>
-            </div>
-
             <div className="pt-6 flex gap-4">
               <Button 
                 onClick={handleAddToCart} 
@@ -144,7 +144,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-6">
               <div className="flex items-start gap-3">
                 <Truck className="text-[#786B59] mt-1" size={20} />
                 <div>
@@ -153,10 +153,17 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                 </div>
               </div>
               <div className="flex items-start gap-3">
+                <RotateCcw className="text-[#786B59] mt-1" size={20} />
+                <div>
+                  <h4 className="text-sm font-medium text-[#2D2A26]">Easy Returns</h4>
+                  <p className="text-xs text-[#786B59] mt-1">Hassle-free returns within 30 days</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
                 <ShieldCheck className="text-[#786B59] mt-1" size={20} />
                 <div>
-                  <h4 className="text-sm font-medium text-[#2D2A26]">Authenticity</h4>
-                  <p className="text-xs text-[#786B59] mt-1">Guaranteed genuine craft</p>
+                  <h4 className="text-sm font-medium text-[#2D2A26]">Secure Checkout</h4>
+                  <p className="text-xs text-[#786B59] mt-1">Encrypted payments & protected data</p>
                 </div>
               </div>
             </div>
