@@ -24,7 +24,6 @@ export function Footer() {
               <li><Link href="/" className="hover:text-[#2D2A26]">Home</Link></li>
               <li><Link href="/shop" className="hover:text-[#2D2A26]">Shop</Link></li>
               <li><Link href="/favourites" className="hover:text-[#2D2A26]">Favourites</Link></li>
-              <li><Link href="/account" className="hover:text-[#2D2A26]">Account</Link></li>
             </ul>
           </div>
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, Menu, X, Heart, User } from 'lucide-react';
+import { ShoppingBag, Menu, X, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
 import { CartDrawer } from './cart-drawer';
@@ -79,10 +79,6 @@ export function Navbar() {
                 )}
               </Link>
 
-              <Link href="/account" className="relative text-[#2D2A26] hover:text-[#786B59] transition-colors">
-                <User size={22} className={pathname === '/account' ? "fill-[#2D2A26]" : ""} />
-              </Link>
-
               <button onClick={() => setIsCartOpen(true)} className="relative text-[#2D2A26] hover:text-[#786B59] transition-colors">
                 <ShoppingBag size={22} />
                 {cartCount > 0 && (
@@ -102,7 +98,6 @@ export function Navbar() {
               <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Home</Link>
               <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Shop</Link>
               <Link href="/favourites" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Favourites</Link>
-              <Link href="/account" onClick={() => setIsMobileMenuOpen(false)} className="text-left py-2 font-medium text-[#2D2A26]">Account</Link>
             </div>
           </div>
         )}

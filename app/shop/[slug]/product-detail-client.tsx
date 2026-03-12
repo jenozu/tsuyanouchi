@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
@@ -119,7 +120,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
             )}
 
             <div className="prose prose-stone max-w-none text-[#4A4036] leading-relaxed text-lg font-light [&_strong]:font-semibold [&_em]:italic">
-              <ReactMarkdown>{product.description || ''}</ReactMarkdown>
+              <ReactMarkdown rehypePlugins={[rehypeRaw]}>{product.description || ''}</ReactMarkdown>
             </div>
 
             <div className="pt-6 flex gap-4">

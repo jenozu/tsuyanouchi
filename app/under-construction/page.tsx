@@ -1,9 +1,11 @@
-import { WaitlistForm } from './waitlist-form';
+import { WaitlistForm } from './waitlist-form'
+import { OwnerAccessForm } from './owner-access-form'
 
 export const metadata = {
   title: 'Coming Soon | Tsuyanouchi',
-  description: 'Tsuyanouchi is under construction. Join the waitlist to be notified when we launch.',
-};
+  description:
+    'Tsuyanouchi is under construction. Join the waitlist to be notified when we launch.',
+}
 
 export default function UnderConstructionPage() {
   return (
@@ -17,8 +19,8 @@ export default function UnderConstructionPage() {
             ukiye-o inspired anime art prints
           </p>
           <p className="text-[#4A4036] leading-relaxed">
-            We&apos;re putting the finishing touches on our collection. Leave your email and
-            we&apos;ll notify you as soon as we&apos;re ready.
+            We&apos;re putting the finishing touches on our collection. Leave your email
+            and we&apos;ll notify you as soon as we&apos;re ready.
           </p>
         </div>
 
@@ -27,7 +29,10 @@ export default function UnderConstructionPage() {
         <p className="text-sm text-[#786B59]/80">
           Thank you for your patience.
         </p>
+
+        <OwnerAccessForm />
       </div>
     </div>
-  );
+  )
 }
+

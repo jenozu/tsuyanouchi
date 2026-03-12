@@ -5,6 +5,7 @@ import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product-card';
 import { getProducts } from '@/lib/supabase-helpers';
+import { NewsletterForm } from '@/components/newsletter-form';
 
 export const dynamic = 'force-dynamic';
 
@@ -84,14 +85,7 @@ export default async function HomePage() {
           <div className="max-w-xl mx-auto px-4 text-center relative z-10">
             <h2 className="text-2xl font-serif mb-4">Join Our Inner Circle</h2>
             <p className="text-[#D4CEC5] mb-8">Receive early access to new collections and exclusive archival releases.</p>
-            <div className="flex gap-2">
-              <input 
-                type="email" 
-                placeholder="Email address" 
-                className="flex-1 bg-[#F9F8F4]/10 border border-[#F9F8F4]/20 px-4 py-3 text-[#F9F8F4] placeholder-[#888] focus:outline-none focus:border-[#F9F8F4] focus:ring-1 focus:ring-[#F9F8F4]"
-              />
-              <Button className="bg-[#F9F8F4] text-[#2D2A26] hover:bg-[#E5E0D8]">Subscribe</Button>
-            </div>
+            <NewsletterForm />
           </div>
         </section>
       </main>

@@ -12,10 +12,9 @@ import {
   TrendingUp, AlertCircle, DollarSign, ArrowRight, ShoppingCart, Truck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Product, Order, ShippingRate, ProductSize } from '@/lib/supabase-helpers';
+import { Product, Order, ShippingRate, ProductSize, getImageUrls, uploadProductImage } from '@/lib/supabase-helpers';
 import { STANDARD_PRINT_SIZES } from '@/lib/print-sizes';
 import { generateProductDescription } from '@/services/gemini';
-import { uploadProductImage } from '@/lib/supabase-helpers';
 
 type AdminTab = 'DASHBOARD' | 'PRODUCTS' | 'ORDERS' | 'SHIPPING' | 'SETTINGS';
 type AnalyticsViewType = 'INVENTORY' | 'CATEGORIES' | 'VALUATION' | 'SALES';
@@ -1051,49 +1050,54 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E5E0D8]">
-                      {products.map((product) => (
-                        <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
-                          <td className="p-4">
-                            <div className="flex items-center gap-3">
-                              <img src={product.image_url} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
-                              <span className="font-medium text-[#2D2A26]">{product.name}</span>
-                            </div>
-                          </td>
-                          <td className="p-4 text-[#4A4036] text-sm">{product.category}</td>
-                          <td className="p-4 text-right text-[#786B59] text-sm">${product.cost || 0}</td>
-                          <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price}</td>
-                          <td className="p-4 text-right">
-                            <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
-                              {product.stock}
-                            </span>
-                          </td>
-                          <td className="p-4 text-right">
-                            <div className="flex justify-end gap-2">
-                              <button 
-                                onClick={() => handleEdit(product)}
-                                className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
-                                title="Edit"
-                              >
-                                <Edit2 size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDuplicate(product)}
-                                className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
-                                title="Duplicate"
-                              >
-                                <Copy size={16} />
-                              </button>
-                              <button 
-                                onClick={() => handleDelete(product.id)}
-                                className="p-2 text-[#786B59] hover:bg-red-50 hover:text-red-600 transition-colors"
-                                title="Delete"
-                              >
-                                <Trash2 size={16} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                      {products.map((product) => {
+                        const imageUrls = getImageUrls(product);
+                        const primaryImageUrl = imageUrls[0] || product.image_url || 'https://picsum.photos/80/80';
+
+                        return (
+                          <tr key={product.id} className="hover:bg-[#F9F8F4] transition-colors group">
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <img src={primaryImageUrl} alt={product.name} className="w-10 h-10 object-cover bg-[#E5E0D8]" />
+                                <span className="font-medium text-[#2D2A26]">{product.name}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 text-[#4A4036] text-sm">{product.category}</td>
+                            <td className="p-4 text-right text-[#786B59] text-sm">${product.cost || 0}</td>
+                            <td className="p-4 text-right text-[#2D2A26] font-medium">${product.price}</td>
+                            <td className="p-4 text-right">
+                              <span className={`px-2 py-1 text-xs ${product.stock < 5 ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-700'}`}>
+                                {product.stock}
+                              </span>
+                            </td>
+                            <td className="p-4 text-right">
+                              <div className="flex justify-end gap-2">
+                                <button 
+                                  onClick={() => handleEdit(product)}
+                                  className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
+                                  title="Edit"
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => handleDuplicate(product)}
+                                  className="p-2 text-[#786B59] hover:bg-[#E5E0D8] hover:text-[#2D2A26] transition-colors"
+                                  title="Duplicate"
+                                >
+                                  <Copy size={16} />
+                                </button>
+                                <button 
+                                  onClick={() => handleDelete(product.id)}
+                                  className="p-2 text-[#786B59] hover:bg-red-50 hover:text-red-600 transition-colors"
+                                  title="Delete"
+                                >
+                                  <Trash2 size={16} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                   {products.length === 0 && (
