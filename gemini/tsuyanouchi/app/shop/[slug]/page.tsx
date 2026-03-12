@@ -5,7 +5,7 @@ import { Footer } from '@/components/footer';
 import { ProductDetailClient } from './product-detail-client';
 import { getProduct } from '@/lib/supabase-helpers';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 interface ProductPageProps {
   params: Promise<{

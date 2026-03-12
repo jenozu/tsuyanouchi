@@ -89,12 +89,15 @@ export function getImageUrls(product: Product): string[] {
 
 export async function getProducts(): Promise<Product[]> {
   try {
+    const start = Date.now()
     const { data, error } = await supabase
       .from('products')
-      .select('*')
+      .select('id, name, description, price, cost, category, image_url, stock, sizes, created_at, updated_at')
       .order('created_at', { ascending: false })
     
     if (error) throw error
+    const duration = Date.now() - start
+    console.log(`[perf] getProducts took ${duration}ms`)
     return data || []
   } catch (error) {
     console.error('Error fetching products:', error)
@@ -104,6 +107,7 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getProduct(id: string): Promise<Product | null> {
   try {
+    const start = Date.now()
     const { data, error } = await supabase
       .from('products')
       .select('*')
@@ -111,6 +115,8 @@ export async function getProduct(id: string): Promise<Product | null> {
       .single()
     
     if (error) throw error
+    const duration = Date.now() - start
+    console.log(`[perf] getProduct(${id}) took ${duration}ms`)
     return data
   } catch (error) {
     console.error('Error fetching product:', error)

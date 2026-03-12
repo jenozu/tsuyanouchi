@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
@@ -62,10 +63,13 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
           {/* Image Section */}
           <div className="space-y-3">
             <div className="relative aspect-[3/4] bg-[#F2EFE9] overflow-hidden shadow-sm border border-[#E5E0D8]">
-              <img 
-                src={imageUrls[selectedImageIndex] || primaryImage} 
-                alt={product.name} 
-                className="w-full h-full object-cover mix-blend-multiply opacity-95"
+              <Image
+                src={imageUrls[selectedImageIndex] || primaryImage}
+                alt={product.name}
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                priority
+                className="object-cover mix-blend-multiply opacity-95"
               />
             </div>
             {imageUrls.length > 1 && (
@@ -79,7 +83,14 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
                       selectedImageIndex === i ? 'border-[#2D2A26]' : 'border-[#E5E0D8] hover:border-[#786B59]'
                     }`}
                   >
-                    <img src={url} alt={`${product.name} ${i + 1}`} className="w-full h-full object-cover" />
+                    <Image
+                      src={url}
+                      alt={`${product.name} ${i + 1}`}
+                      fill
+                      sizes="64px"
+                      loading="lazy"
+                      className="object-cover"
+                    />
                   </button>
                 ))}
               </div>

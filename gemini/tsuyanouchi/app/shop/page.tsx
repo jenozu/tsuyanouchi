@@ -4,7 +4,7 @@ import { Footer } from '@/components/footer';
 import { ShopClient } from './shop-client';
 import { getProducts } from '@/lib/supabase-helpers';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function ShopPage() {
   const products = await getProducts();

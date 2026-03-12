@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Product, getImageUrls } from '@/lib/supabase-helpers';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
@@ -42,10 +43,12 @@ export function ProductCard({ product }: ProductCardProps) {
       className="group relative bg-[#F9F8F4] border border-[#E5E0D8] hover:border-[#CDC6BC] transition-all duration-300 hover:shadow-lg cursor-pointer block"
     >
       <div className="aspect-[3/4] overflow-hidden bg-[#F2EFE9] relative">
-        <img 
-          src={primaryImage} 
-          alt={product.name} 
-          className="h-full w-full object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-95 group-hover:opacity-100 mix-blend-multiply"
+        <Image
+          src={primaryImage}
+          alt={product.name}
+          fill
+          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+          className="object-cover object-center group-hover:scale-105 transition-transform duration-500 opacity-95 group-hover:opacity-100 mix-blend-multiply"
         />
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-300" />
         
