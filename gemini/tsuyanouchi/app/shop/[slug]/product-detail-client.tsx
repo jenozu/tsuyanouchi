@@ -43,7 +43,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       id: product.id,
       name: product.name,
       price: product.price,
-      imageUrl: product.image_url,
+      imageUrl: primaryImage,
       selectedSize: selectedSize
     });
   };
