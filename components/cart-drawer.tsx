@@ -2,6 +2,7 @@
 
 import React, { useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { X, Minus, Plus, Trash2 } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { Button } from './ui/button';
@@ -48,8 +49,8 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 
                 return (
                   <div key={itemKey} className="flex gap-4">
-                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden border border-[#E5E0D8]">
-                      <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover mix-blend-multiply" />
+                    <div className="h-24 w-24 flex-shrink-0 overflow-hidden border border-[#E5E0D8] relative">
+                      <Image src={item.imageUrl || 'https://picsum.photos/96/96'} alt={item.name} fill className="object-cover mix-blend-multiply" />
                     </div>
                     <div className="flex flex-1 flex-col justify-between">
                       <div>

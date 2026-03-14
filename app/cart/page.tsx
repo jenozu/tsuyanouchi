@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
@@ -38,8 +39,8 @@ export default function CartPage() {
                   
                   return (
                     <div key={itemKey} className="flex gap-6 p-6 bg-white border border-[#E5E0D8]">
-                      <div className="h-32 w-32 flex-shrink-0 overflow-hidden border border-[#E5E0D8]">
-                        <img src={item.imageUrl} alt={item.name} className="h-full w-full object-cover" />
+                      <div className="h-32 w-32 flex-shrink-0 overflow-hidden border border-[#E5E0D8] relative">
+                        <Image src={item.imageUrl || 'https://picsum.photos/128/128'} alt={item.name} fill className="object-cover" />
                       </div>
                       <div className="flex flex-1 flex-col justify-between">
                         <div>

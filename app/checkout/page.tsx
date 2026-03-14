@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
@@ -463,7 +464,9 @@ export default function CheckoutPage() {
                 <div className="space-y-4 mb-6">
                   {cartItems.map((item, idx) => (
                     <div key={`${item.id}-${idx}`} className="flex gap-3">
-                      <img src={item.imageUrl} alt={item.name} className="w-16 h-16 object-cover border border-[#E5E0D8]" />
+                      <div className="w-16 h-16 flex-shrink-0 border border-[#E5E0D8] relative overflow-hidden">
+                        <Image src={item.imageUrl || 'https://picsum.photos/64/64'} alt={item.name} fill className="object-cover" />
+                      </div>
                       <div className="flex-1">
                         <p className="text-sm font-medium text-[#2D2A26]">{item.name}</p>
                         {item.selectedSize && <p className="text-xs text-[#786B59]">Size: {item.selectedSize.label}</p>}

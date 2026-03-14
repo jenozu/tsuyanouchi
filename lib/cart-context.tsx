@@ -31,6 +31,18 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'tsuyanouchi_cart';
 
+function sanitizeImageUrl(url: string): string {
+  if (url?.trim().startsWith('[')) {
+    try {
+      const arr = JSON.parse(url) as string[];
+      return Array.isArray(arr) && arr[0] ? arr[0] : url;
+    } catch {
+      return url;
+    }
+  }
+  return url;
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -40,7 +52,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const stored = localStorage.getItem(CART_STORAGE_KEY);
       if (stored) {
-        setCartItems(JSON.parse(stored));
+        const items = JSON.parse(stored) as CartItem[];
+        setCartItems(items.map(item => ({
+          ...item,
+          imageUrl: sanitizeImageUrl(item.imageUrl),
+        })));
       }
     } catch (error) {
       console.error('Error loading cart from localStorage:', error);
