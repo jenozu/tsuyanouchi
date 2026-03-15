@@ -1,16 +1,22 @@
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { CheckCircle } from 'lucide-react';
+import { useCart } from '@/lib/cart-context';
 
 function ThankYouContent() {
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
+  const { clearCart } = useCart();
+
+  useEffect(() => {
+    if (orderId) clearCart();
+  }, [orderId, clearCart]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">

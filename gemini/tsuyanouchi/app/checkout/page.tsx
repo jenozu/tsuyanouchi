@@ -14,6 +14,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { computeTaxAmount } from '@/lib/tax';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -26,17 +27,9 @@ const checkoutSchema = z.object({
   state: z.string().min(2, 'State/Province is required'),
   postalCode: z.string().min(3, 'Postal code is required'),
   country: z.string().min(2, 'Country is required'),
-  shippingRateId: z.string().min(1, 'Please select a shipping method'),
 });
 
 type CheckoutFormData = z.infer<typeof checkoutSchema>;
-
-interface ShippingRate {
-  id: string;
-  name: string;
-  country_code: string;
-  price: number;
-}
 
 interface StripePaymentFormProps {
   clientSecret: string;
@@ -113,8 +106,7 @@ function StripePaymentForm({ clientSecret, orderId, orderData, onSuccess, onErro
 export default function CheckoutPage() {
   const router = useRouter();
   const { cartItems, getCartTotal, clearCart } = useCart();
-  const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
-  const [selectedShippingRate, setSelectedShippingRate] = useState<ShippingRate | null>(null);
+  const [shippingCost, setShippingCost] = useState<number | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentStep, setPaymentStep] = useState<'shipping' | 'payment'>('shipping');
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -133,37 +125,39 @@ export default function CheckoutPage() {
   });
 
   const watchedCountry = watch('country');
-  const watchedShippingRateId = watch('shippingRateId');
+  const watchedState = watch('state');
 
   const subtotal = getCartTotal();
-  const taxRate = 0.10;
-  const taxes = subtotal * taxRate;
-  const shippingCost = selectedShippingRate?.price || 0;
-  const total = subtotal + taxes + shippingCost;
+  const totalQuantity = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const resolvedShipping = shippingCost ?? 0;
+  const taxes = computeTaxAmount(subtotal + resolvedShipping, watchedCountry || 'US', watchedState || undefined);
+  const total = subtotal + resolvedShipping + taxes;
 
   useEffect(() => {
-    async function loadShippingRates() {
+    if (!watchedCountry) {
+      setShippingCost(null);
+      return;
+    }
+    const q = Math.max(1, totalQuantity);
+    let cancelled = false;
+    async function load() {
       try {
-        const response = await fetch('/api/shipping/rates');
-        const rates = await response.json();
-        setShippingRates(rates);
-      } catch (error) {
-        console.error('Error loading shipping rates:', error);
+        const res = await fetch(
+          `/api/shipping/rate?country=${encodeURIComponent(watchedCountry)}&quantity=${q}`
+        );
+        const data = await res.json().catch(() => ({}));
+        if (!cancelled && typeof data?.price === 'number') {
+          setShippingCost(data.price);
+        } else if (!cancelled) {
+          setShippingCost(0);
+        }
+      } catch {
+        if (!cancelled) setShippingCost(0);
       }
     }
-    loadShippingRates();
-  }, []);
-
-  useEffect(() => {
-    if (watchedShippingRateId) {
-      const rate = shippingRates.find(r => r.id === watchedShippingRateId);
-      setSelectedShippingRate(rate || null);
-    }
-  }, [watchedShippingRateId, shippingRates]);
-
-  const availableRates = shippingRates.filter(
-    rate => rate.country_code === watchedCountry || rate.country_code === 'INTL'
-  );
+    load();
+    return () => { cancelled = true; };
+  }, [watchedCountry, totalQuantity]);
 
   const onContinueToPayment = async (data: CheckoutFormData) => {
     if (cartItems.length === 0) {
@@ -203,7 +197,7 @@ export default function CheckoutPage() {
         })),
         subtotal,
         taxes,
-        shipping: shippingCost,
+        shipping: resolvedShipping,
         total,
         status: 'pending',
         payment_status: 'pending',
@@ -356,37 +350,23 @@ export default function CheckoutPage() {
                       <option value="GB">United Kingdom</option>
                       <option value="AU">Australia</option>
                       <option value="JP">Japan</option>
+                      <option value="AT">Austria</option>
+                      <option value="BE">Belgium</option>
+                      <option value="FR">France</option>
+                      <option value="DE">Germany</option>
+                      <option value="IE">Ireland</option>
+                      <option value="IT">Italy</option>
+                      <option value="NL">Netherlands</option>
+                      <option value="ES">Spain</option>
+                      <option value="SE">Sweden</option>
+                      <option value="CH">Switzerland</option>
+                      <option value="NO">Norway</option>
+                      <option value="DK">Denmark</option>
+                      <option value="FI">Finland</option>
                     </select>
                     {errors.country && <p className="text-xs text-[#8C3F3F] mt-1">{errors.country.message}</p>}
                   </div>
                 </div>
-              </div>
-
-              {/* Shipping Method */}
-              <div className={`bg-white border border-[#E5E0D8] p-6 transition-opacity ${paymentStep === 'payment' ? 'opacity-50 pointer-events-none select-none' : ''}`}>
-                <h2 className="text-xl font-serif text-[#2D2A26] mb-6">Shipping Method</h2>
-                <div className="space-y-3">
-                  {availableRates.map(rate => (
-                    <label key={rate.id} className="flex items-center p-4 border border-[#E5E0D8] hover:border-[#2D2A26] cursor-pointer">
-                      <input
-                        type="radio"
-                        {...register('shippingRateId')}
-                        value={rate.id}
-                        className="mr-3"
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-[#2D2A26]">{rate.name}</p>
-                      </div>
-                      <p className="font-medium text-[#2D2A26]">${rate.price.toFixed(2)}</p>
-                    </label>
-                  ))}
-                  {availableRates.length === 0 && (
-                    <p className="text-sm text-[#786B59] italic">
-                      No shipping options available for the selected country. Please contact us at concierge@tsuyanouchi.com.
-                    </p>
-                  )}
-                </div>
-                {errors.shippingRateId && <p className="text-xs text-[#8C3F3F] mt-2">{errors.shippingRateId.message}</p>}
               </div>
 
               {/* Step 1: Continue to Payment button */}
@@ -398,7 +378,7 @@ export default function CheckoutPage() {
                   <Button
                     type="submit"
                     className="w-full flex items-center justify-center gap-2"
-                    disabled={isProcessing}
+                    disabled={isProcessing || shippingCost === null}
                   >
                     <CreditCard size={20} />
                     {isProcessing ? 'Initializing payment…' : 'Continue to Payment'}
@@ -486,7 +466,9 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex justify-between text-[#4A4036]">
                     <span>Shipping</span>
-                    <span>${shippingCost.toFixed(2)}</span>
+                    <span>
+                      {shippingCost === null ? '—' : resolvedShipping === 0 ? 'FREE' : `$${resolvedShipping.toFixed(2)}`}
+                    </span>
                   </div>
                   <div className="flex justify-between text-[#4A4036]">
                     <span>Tax</span>

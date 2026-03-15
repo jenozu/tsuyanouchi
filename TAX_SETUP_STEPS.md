@@ -86,6 +86,7 @@ Work through it in order. Treat this as a guide, not legal advice—plan to sani
     - **Canada**: enter your GST/HST number and home province once you are registered.
     - Any **US states** you’ve been advised to register in, once you have state tax IDs.
     - Any **EU VAT/OSS/IOSS** registration once you obtain it.
+  - **How to register** for US sales tax and EU VAT (so you can add them here) is in **`TAX_REGISTRATION_GUIDE.md`**.
 
 - **Decide tax behavior**
   - For each region, decide whether prices are:
@@ -134,14 +135,14 @@ Work through it in order. Treat this as a guide, not legal advice—plan to sani
 
 ### 7. Configure Stripe Checkout / Payment Links for automatic tax
 
-- **For Stripe Checkout Sessions**
-  - In your backend, when creating a Checkout Session:
-    - Use your DB to fetch the relevant `price_id` and quantity.
-    - Include:
-      - `automatic_tax: { enabled: true }`
-      - `mode: 'payment'`
-      - `success_url` and `cancel_url`
-    - Ensure **shipping or billing address** collection is enabled in Stripe Checkout settings so Stripe Tax can determine the correct tax location.
+- **This project uses Stripe Checkout** (see `/api/checkout/create-session` and the checkout page). Sessions are created with:
+  - `automatic_tax: { enabled: true }`
+  - `shipping_address_collection` so Stripe Tax can determine the customer’s location (and charge VAT, US sales tax, etc. as applicable).
+  - Line items use tax code `txcd_99999999` (general tangible goods).
+- **Webhook:** Ensure your Stripe webhook (Dashboard → Developers → Webhooks) includes the event **`checkout.session.completed`** so orders are created and confirmation emails sent after payment.
+- **For Payment Links** (if you use them elsewhere):
+  - Enable `automatic_tax[enabled]=true`.
+  - Configure allowed shipping countries and shipping rates.
 
 - **For Payment Links**
   - When creating Payment Links in Stripe:

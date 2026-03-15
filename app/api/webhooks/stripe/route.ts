@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { verifyWebhookSignature } from '@/lib/stripe'
-import { updateOrderStatus, getOrder } from '@/lib/supabase-helpers'
+import { verifyWebhookSignature, stripe } from '@/lib/stripe'
+import { updateOrderStatus, getOrder, createOrder } from '@/lib/supabase-helpers'
 import { sendOrderConfirmation, sendOrderNotification } from '@/lib/email'
 
 export async function POST(request: Request) {
@@ -25,6 +25,92 @@ export async function POST(request: Request) {
     
     // Handle different event types
     switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as { id: string; metadata?: Record<string, string>; customer_details?: { email?: string; address?: { line1?: string; city?: string; state?: string; postal_code?: string; country?: string }; name?: string }; amount_total?: number }
+        const orderId = session.metadata?.orderId || `ORD-${session.id}`
+        const email = session.customer_details?.email
+        if (!email) {
+          console.error('No email on checkout.session.completed')
+          break
+        }
+        const meta = session.metadata || {}
+        const hasMetaAddress = meta.addr_country != null && meta.addr_country !== ''
+        const shipping_address = hasMetaAddress
+          ? {
+              firstName: meta.addr_firstName ?? '',
+              lastName: meta.addr_lastName ?? '',
+              address: meta.addr_address ?? '',
+              city: meta.addr_city ?? '',
+              state: meta.addr_state ?? '',
+              postalCode: meta.addr_postalCode ?? '',
+              country: meta.addr_country ?? '',
+            }
+          : (() => {
+              const addr = session.customer_details?.address
+              return {
+                firstName: (session.customer_details?.name || '').split(' ')[0] || 'Customer',
+                lastName: (session.customer_details?.name || '').split(' ').slice(1).join(' ') || '',
+                address: addr?.line1 || '',
+                city: addr?.city || '',
+                state: addr?.state || '',
+                postalCode: addr?.postal_code || '',
+                country: addr?.country || '',
+              }
+            })()
+        const fullSession = await stripe.checkout.sessions.retrieve(session.id, { expand: ['line_items.data.price.product'] })
+        const fs = fullSession as { line_items?: { data: Array<{ quantity: number; amount_total?: number; price?: { unit_amount?: number; product?: { name?: string }; recurring?: unknown }; description?: string }> }; amount_total?: number; amount_subtotal?: number; total_details?: { amount_tax?: number; amount_shipping?: number }; payment_intent?: string }
+        const lineItems = fs.line_items?.data || []
+        const productLineItems = lineItems.filter((li) => {
+          if (!li.price || (li.price as { recurring?: unknown }).recurring) return false
+          const name = (li.price as { product?: { name?: string } })?.product?.name ?? (li as { description?: string }).description ?? ''
+          return name !== 'Shipping' && name !== 'Tax'
+        })
+        const items = productLineItems.map((li) => ({
+          productId: '',
+          productName: (li.price as { product?: { name?: string } })?.product?.name ?? (li as { description?: string }).description ?? 'Item',
+          quantity: li.quantity ?? 1,
+          price: ((li.price as { unit_amount?: number })?.unit_amount ?? 0) / 100,
+          imageUrl: undefined,
+        }))
+        let amountShipping = (fs.total_details?.amount_shipping ?? 0) / 100
+        let amountTax = (fs.total_details?.amount_tax ?? 0) / 100
+        if (amountShipping === 0 || amountTax === 0) {
+          for (const li of lineItems) {
+            const name = (li.price as { product?: { name?: string } })?.product?.name ?? (li as { description?: string }).description ?? ''
+            const amt = (li.amount_total ?? 0) / 100
+            if (name === 'Shipping') amountShipping = amt
+            if (name === 'Tax') amountTax = amt
+          }
+        }
+        const amountTotal = fs.amount_total ?? 0
+        const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0)
+        const total = amountTotal / 100
+        await createOrder({
+          order_id: orderId,
+          email,
+          items,
+          subtotal,
+          taxes: amountTax,
+          shipping: amountShipping,
+          total,
+          status: 'processing',
+          shipping_address,
+          payment_intent_id: fs.payment_intent ?? undefined,
+          payment_status: 'paid',
+          payment_method: 'stripe_checkout',
+        })
+        const order = await getOrder(orderId)
+        if (order) {
+          try {
+            await sendOrderConfirmation(email, orderId, order)
+            await sendOrderNotification(orderId, order)
+          } catch (emailError) {
+            console.error('Email error after checkout.session.completed:', emailError)
+          }
+        }
+        break
+      }
+
       case 'payment_intent.succeeded': {
         const paymentIntent = event.data.object
         const { orderId, email } = paymentIntent.metadata
