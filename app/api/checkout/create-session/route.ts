@@ -52,8 +52,40 @@ export async function POST(request: Request) {
 
     const origin = request.headers.get('origin') || request.nextUrl?.origin || ''
     const orderId = `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 11).toUpperCase()}`
-    const success = successUrl || `${origin}/thank-you?orderId=${encodeURIComponent(orderId)}`
-    const cancel = cancelUrl || `${origin}/checkout`
+
+    const MAX_URL_LENGTH = 2048
+
+    const buildSafeUrl = (rawUrl: string | undefined, fallbackBase: string) => {
+      const candidate = rawUrl && typeof rawUrl === 'string' ? rawUrl : fallbackBase
+
+      if (candidate.length <= MAX_URL_LENGTH) {
+        return candidate
+      }
+
+      try {
+        const parsed = new URL(candidate)
+        const baseOnly = `${parsed.origin}${parsed.pathname}`
+        if (baseOnly.length <= MAX_URL_LENGTH) {
+          return baseOnly
+        }
+      } catch {
+        // ignore parse errors and fall back below
+      }
+
+      if (fallbackBase.length <= MAX_URL_LENGTH) {
+        return fallbackBase
+      }
+
+      return fallbackBase.slice(0, MAX_URL_LENGTH)
+    }
+
+    const defaultSuccessBase = origin ? `${origin}/thank-you` : '/thank-you'
+    const defaultCancelBase = origin ? `${origin}/checkout` : '/checkout'
+
+    const successWithOrder = `${defaultSuccessBase}?orderId=${encodeURIComponent(orderId)}`
+
+    const success = buildSafeUrl(successUrl ?? successWithOrder, defaultSuccessBase)
+    const cancel = buildSafeUrl(cancelUrl, defaultCancelBase)
 
     const lineItems: Parameters<typeof stripe.checkout.sessions.create>[0]['line_items'] = items.map((item) => {
       const unitAmount = Math.round((item.price ?? 0) * 100)

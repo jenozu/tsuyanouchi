@@ -126,7 +126,16 @@ export default function CheckoutPage() {
       const sessionData = await res.json().catch(() => ({}));
 
       if (!res.ok) {
-        setError(sessionData.error || 'Could not start checkout. Please try again.');
+        let message: string =
+          (typeof sessionData.error === 'string' && sessionData.error) ||
+          'Could not start checkout. Please try again.';
+
+        if (message.includes('URL must be 2048 characters or less')) {
+          message =
+            'There was a problem starting checkout. Please refresh the page and try again. If the issue persists, please contact support.';
+        }
+
+        setError(message);
         setIsRedirecting(false);
         return;
       }
