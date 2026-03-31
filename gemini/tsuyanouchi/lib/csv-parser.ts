@@ -201,7 +201,7 @@ function parseProductFromRow(row: CSVRow): ParsedProduct {
     : 0;
   
   const avgCost = sizes.length > 0
-    ? Math.round(sizes.reduce((sum, s) => sum + s.cost, 0) / sizes.length)
+    ? Math.round(sizes.reduce((sum, s) => sum + (s.cost ?? 0), 0) / sizes.length)
     : 0;
 
   return {

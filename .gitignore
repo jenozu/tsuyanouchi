@@ -28,6 +28,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# local dump / scratch folders
+error logs/
+
 # vercel
 .vercel
 

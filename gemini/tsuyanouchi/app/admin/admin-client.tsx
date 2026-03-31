@@ -703,7 +703,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         <YAxis stroke="#786B59" fontSize={12} tickLine={false} tickFormatter={(val) => `$${val/1000}k`} />
                         <RechartsTooltip 
                           contentStyle={{ backgroundColor: '#F9F8F4', border: '1px solid #E5E0D8' }}
-                          formatter={(value: number, name: string) => [`$${Math.round(value).toLocaleString()}`, name === 'profit' ? 'Net Profit' : 'Cost of Goods']}
+                          formatter={(value: number | undefined, name: string | undefined) => [`$${Math.round(value ?? 0).toLocaleString()}`, name === 'profit' ? 'Net Profit' : 'Cost of Goods']}
                           cursor={{fill: '#F2EFE9'}}
                         />
                         <Legend iconType="circle" />
@@ -775,7 +775,7 @@ export function AdminDashboard({ initialProducts, initialOrders, initialShipping
                         />
                         <RechartsTooltip 
                           contentStyle={{ backgroundColor: '#F9F8F4', border: '1px solid #E5E0D8' }}
-                          formatter={(value: number) => [`$${value.toLocaleString()}`, 'Total Value']}
+                          formatter={(value: number | undefined) => [`$${(value ?? 0).toLocaleString()}`, 'Total Value']}
                           cursor={{fill: '#F2EFE9'}}
                         />
                         <Bar dataKey="value" fill="#5C7C66" radius={[0, 4, 4, 0]} barSize={20} />

@@ -2,6 +2,8 @@
 
 A luxury e-commerce platform built with Next.js 15, featuring a curated collection of Japanese-inspired lifestyle goods.
 
+**Repository layout:** The deployable Next.js app is in [`gemini/tsuyanouchi/`](gemini/tsuyanouchi/). Use that directory for installs, env files, and local dev. On Vercel, set **Root Directory** to `gemini/tsuyanouchi`. From the repo root you can run `npm run dev` / `npm run build` (they forward into that folder).
+
 ![Tsuyanouchi](https://images.unsplash.com/photo-1528164344705-47542687000d?auto=format&fit=crop&q=80&w=1200&h=400)
 
 ## Features

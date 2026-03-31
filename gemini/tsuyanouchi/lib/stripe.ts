@@ -9,7 +9,7 @@ function getStripeClient(): Stripe {
   }
   if (!cachedStripe) {
     cachedStripe = new Stripe(secretKey, {
-      apiVersion: '2024-12-18.acacia',
+      apiVersion: '2025-02-24.acacia',
       typescript: true,
     })
   }
@@ -19,7 +19,7 @@ function getStripeClient(): Stripe {
 // Lazy proxy: avoid build-time failure when env vars are unavailable
 export const stripe = new Proxy({} as Stripe, {
   get(_, prop) {
-    return (getStripeClient() as Record<string | symbol, unknown>)[prop]
+    return (getStripeClient() as unknown as Record<string | symbol, unknown>)[prop]
   },
 })
 

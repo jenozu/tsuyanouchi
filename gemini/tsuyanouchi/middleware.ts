@@ -4,7 +4,6 @@ import type { NextRequest } from 'next/server'
 const UNDER_CONSTRUCTION = process.env.NEXT_PUBLIC_UNDER_CONSTRUCTION === 'true'
 
 export function middleware(request: NextRequest) {
-  // When under construction, redirect all page traffic to the under-construction page
   if (UNDER_CONSTRUCTION) {
     const pathname = request.nextUrl.pathname
     const isUnderConstructionPage = pathname === '/under-construction'
@@ -13,7 +12,13 @@ export function middleware(request: NextRequest) {
     const isFavicon = pathname === '/favicon.ico'
     const isAdmin = pathname.startsWith('/admin')
 
-    if (!isUnderConstructionPage && !isApi && !isStatic && !isFavicon && !isAdmin) {
+    const adminSession = request.cookies.get('admin_session')
+    const hasAdminAccess = adminSession?.value === 'authenticated'
+
+    const previewCookie = request.cookies.get('preview_access')
+    const hasPreviewAccess = previewCookie?.value === 'granted'
+
+    if (!isUnderConstructionPage && !isApi && !isStatic && !isFavicon && !isAdmin && !hasAdminAccess && !hasPreviewAccess) {
       return NextResponse.redirect(new URL('/under-construction', request.url))
     }
   }

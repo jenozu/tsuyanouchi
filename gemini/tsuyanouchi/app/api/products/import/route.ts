@@ -61,7 +61,6 @@ export async function POST(request: NextRequest) {
           image_url: product.image_url,
           stock: product.stock,
           sizes: product.sizes,
-          product_type: null, // Can be added to CSV if needed
         });
 
         if (newProduct) {

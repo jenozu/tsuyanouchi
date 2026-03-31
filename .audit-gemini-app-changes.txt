@@ -1,0 +1,113 @@
+﻿diff --git a/gemini/tsuyanouchi/app/api/orders/route.ts b/gemini/tsuyanouchi/app/api/orders/route.ts
+index d579249..24bb65c 100644
+--- a/gemini/tsuyanouchi/app/api/orders/route.ts
++++ b/gemini/tsuyanouchi/app/api/orders/route.ts
+@@ -4,21 +4,26 @@ import { createOrder } from '@/lib/supabase-helpers'
+ export async function POST(request: Request) {
+   try {
+     const orderData = await request.json()
+-    
++
++    console.log('[orders] Creating order:', orderData.order_id)
++
+     const order = await createOrder(orderData)
+-    
++
+     if (!order) {
++      console.error('[orders] createOrder returned null for:', orderData.order_id)
+       return NextResponse.json(
+         { error: 'Failed to create order' },
+         { status: 500 }
+       )
+     }
+-    
++
++    console.log('[orders] Order created successfully:', order.order_id)
+     return NextResponse.json(order, { status: 201 })
+   } catch (error) {
+-    console.error('Error creating order:', error)
++    const message = error instanceof Error ? error.message : 'Unknown error'
++    console.error('[orders] Error creating order:', message, error)
+     return NextResponse.json(
+-      { error: 'Failed to create order' },
++      { error: message },
+       { status: 500 }
+     )
+   }
+diff --git a/gemini/tsuyanouchi/app/api/payments/create-intent/route.ts b/gemini/tsuyanouchi/app/api/payments/create-intent/route.ts
+index f471da9..22b6cb7 100644
+--- a/gemini/tsuyanouchi/app/api/payments/create-intent/route.ts
++++ b/gemini/tsuyanouchi/app/api/payments/create-intent/route.ts
+@@ -1,27 +1,47 @@
+ import { NextResponse } from 'next/server'
++import Stripe from 'stripe'
+ import { createPaymentIntent } from '@/lib/stripe'
+ 
+ export async function POST(request: Request) {
+   try {
+-    const { amount, currency = 'usd', metadata } = await request.json()
+-    
++    const body = await request.json()
++    const { amount, currency = 'usd', metadata } = body
++
+     if (!amount || amount <= 0) {
+       return NextResponse.json(
+         { error: 'Invalid amount' },
+         { status: 400 }
+       )
+     }
+-    
++
++    console.log('[create-intent] Creating payment intent:', { amount, currency, metadata })
++
+     const paymentIntent = await createPaymentIntent(amount, currency, metadata)
+-    
++
++    console.log('[create-intent] Success:', paymentIntent.id)
++
+     return NextResponse.json({
+       clientSecret: paymentIntent.client_secret,
+       paymentIntentId: paymentIntent.id,
+     })
+   } catch (error) {
+-    console.error('Error creating payment intent:', error)
++    if (error instanceof Stripe.errors.StripeError) {
++      console.error('[create-intent] Stripe error:', {
++        type: error.type,
++        code: error.code,
++        message: error.message,
++        statusCode: error.statusCode,
++      })
++      return NextResponse.json(
++        { error: error.message, code: error.code },
++        { status: error.statusCode || 500 }
++      )
++    }
++
++    const message = error instanceof Error ? error.message : 'Unknown error'
++    console.error('[create-intent] Unexpected error:', message, error)
+     return NextResponse.json(
+-      { error: 'Failed to create payment intent' },
++      { error: message },
+       { status: 500 }
+     )
+   }
+diff --git a/gemini/tsuyanouchi/app/under-construction/page.tsx b/gemini/tsuyanouchi/app/under-construction/page.tsx
+index 6ddf5b2..955d4ce 100644
+--- a/gemini/tsuyanouchi/app/under-construction/page.tsx
++++ b/gemini/tsuyanouchi/app/under-construction/page.tsx
+@@ -1,4 +1,5 @@
+ import { WaitlistForm } from './waitlist-form';
++import { OwnerAccessForm } from './owner-access-form';
+ 
+ export const metadata = {
+   title: 'Coming Soon | Tsuyanouchi',
+@@ -27,6 +28,8 @@ export default function UnderConstructionPage() {
+         <p className="text-sm text-[#786B59]/80">
+           Thank you for your patience.
+         </p>
++
++        <OwnerAccessForm />
+       </div>
+     </div>
+   );

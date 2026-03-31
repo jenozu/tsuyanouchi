@@ -25,6 +25,6 @@ function getSupabase(): SupabaseClient {
 // Lazy proxy: only creates client when first used (at runtime), so build succeeds without env vars
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_, prop) {
-    return (getSupabase() as Record<string | symbol, unknown>)[prop]
+    return (getSupabase() as unknown as Record<string | symbol, unknown>)[prop]
   },
 })

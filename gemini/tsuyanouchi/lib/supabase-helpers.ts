@@ -5,6 +5,7 @@ import { supabase } from './supabase-client'
 export interface ProductSize {
   label: string
   price: number
+  cost?: number
 }
 
 export interface Product {

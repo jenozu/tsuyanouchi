@@ -16,6 +16,9 @@ STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
 # Admin Configuration
 ADMIN_PASSWORD=your-secure-admin-password
 
+# Owner Access (under-construction page - "Enter site" password)
+PREVIEW_PASSWORD=your-preview-password
+
 # Resend Email Configuration
 RESEND_API_KEY=re_your-resend-api-key
 ORDER_NOTIFICATION_EMAIL=admin@tsuyanouchi.com

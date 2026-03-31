@@ -1,4 +1,5 @@
 import { WaitlistForm } from './waitlist-form';
+import { OwnerAccessForm } from './owner-access-form';
 
 export const metadata = {
   title: 'Coming Soon | Tsuyanouchi',
@@ -27,6 +28,8 @@ export default function UnderConstructionPage() {
         <p className="text-sm text-[#786B59]/80">
           Thank you for your patience.
         </p>
+
+        <OwnerAccessForm />
       </div>
     </div>
   );
