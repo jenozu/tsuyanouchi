@@ -1,3 +1,6 @@
 {
-  "installCommand": "npm install --legacy-peer-deps --prefix gemini/tsuyanouchi"
+  "framework": "nextjs",
+  "installCommand": "npm install --legacy-peer-deps --prefix gemini/tsuyanouchi",
+  "buildCommand": "npm run build",
+  "outputDirectory": "gemini/tsuyanouchi/.next"
 }
