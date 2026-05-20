@@ -4,10 +4,10 @@ import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/product-card';
-import { getProducts } from '@/lib/supabase-helpers';
+import { getProducts } from '@/lib/shopify';
 import { NewsletterForm } from '@/components/newsletter-form';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 export default async function HomePage() {
   const products = await getProducts();

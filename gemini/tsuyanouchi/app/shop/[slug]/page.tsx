@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { Navbar } from '@/components/navbar';
 import { Footer } from '@/components/footer';
 import { ProductDetailClient } from './product-detail-client';
-import { getProduct } from '@/lib/supabase-helpers';
+import { getProductByHandle } from '@/lib/shopify';
 
 export const revalidate = 300;
 
@@ -15,7 +15,7 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductByHandle(slug);
 
   if (!product) {
     notFound();

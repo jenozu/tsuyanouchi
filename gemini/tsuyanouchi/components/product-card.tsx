@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product, getImageUrls } from '@/lib/supabase-helpers';
+import { Product, getImageUrls } from '@/lib/shopify';
 import { ShoppingBag, Heart } from 'lucide-react';
 import { useCart } from '@/lib/cart-context';
 import { useFavorites } from '@/lib/favorites-context';
@@ -28,6 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
       name: product.name,
       price: product.price,
       imageUrl: primaryImage,
+      _variantId: product._variantGid ?? '',
     });
   };
 

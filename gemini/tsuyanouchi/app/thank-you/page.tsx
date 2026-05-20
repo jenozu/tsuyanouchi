@@ -15,8 +15,8 @@ function ThankYouContent() {
   const { clearCart } = useCart();
 
   useEffect(() => {
-    if (orderId) clearCart();
-  }, [orderId, clearCart]);
+    clearCart();
+  }, [clearCart]);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">

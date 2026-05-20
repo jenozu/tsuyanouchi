@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product, ProductSize, getImageUrls } from '@/lib/supabase-helpers';
+import { Product, ProductSize, getImageUrls } from '@/lib/shopify';
 import { Button } from '@/components/ui/button';
 import ReactMarkdown from 'react-markdown';
 import { ArrowLeft, ShoppingBag, Truck, ShieldCheck, Heart, ChevronDown, RotateCcw } from 'lucide-react';
@@ -39,12 +39,16 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
   const currentPrice = selectedSize ? selectedSize.price : product.price;
 
   const handleAddToCart = () => {
+    const variantGid = selectedSize
+      ? (product._variantMap?.[selectedSize.label] ?? product._variantGid ?? '')
+      : (product._variantGid ?? '');
     addToCart({
       id: product.id,
       name: product.name,
       price: product.price,
       imageUrl: primaryImage,
-      selectedSize: selectedSize
+      selectedSize,
+      _variantId: variantGid,
     });
   };
 
